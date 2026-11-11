@@ -4,8 +4,10 @@ Literature curation and critical appraisal for Israeli emergency medicine reside
 Owner: Yoav (EM residency program director, Shamir Medical Center). He is not a software
 developer: explain changes in plain Hebrew, and keep him out of git and terminal details.
 
-Read `docs/SPEC.md` (product spec) and `docs/BUILD_PLAN.md` (milestones) before changing anything.
-The live, authoritative versions are in the Claude doc linked from those files.
+Read `docs/SPEC.md` (product spec) and `docs/BUILD_PLAN.md` (milestones, open decisions) before
+changing anything. They are kept in sync with Yoav's live Hebrew doc (linked there), which a
+Claude Code session may not be able to open; the repo files are enough to work from. When a
+product decision is missing, ask Yoav instead of guessing, and record the answer in `docs/`.
 
 ## Non-negotiable rules
 
