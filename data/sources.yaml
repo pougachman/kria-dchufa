@@ -1,0 +1,31 @@
+# Journals scanned for every topic, and FOAMed signal sources. Version 1 (November 2026).
+core_em_journals:
+  core:
+    - Annals of Emergency Medicine
+    - Academic Emergency Medicine
+    - Emergency Medicine Journal
+    - American Journal of Emergency Medicine
+    - European Journal of Emergency Medicine
+  complementary:
+    - CJEM
+    - The Journal of Emergency Medicine
+    - Western Journal of Emergency Medicine
+  suggested:
+    - Emergency Medicine Australasia
+    - Scandinavian Journal of Trauma, Resuscitation and Emergency Medicine
+general_journals:
+  core: [New England Journal of Medicine, JAMA, The Lancet, The BMJ]
+  suggested: [NEJM Evidence, JAMA Network Open, Cochrane Database of Systematic Reviews]
+# FOAMed sites are a ranking signal and a link to commentary, never a source of articles.
+# Each feed is checked monthly and disabled if it has had no post in 12 months.
+# Feed URLs are added and verified in M2.
+foamed:
+  em_ebm: [SGEM, REBEL EM, St Emlyn's, First10EM, JournalFeed, EM Literature of Note, LITFL, ALiEM, emDocs, EM Cases, CanadiEM, CORE EM, FOAMcast, EM Basic, The NNT, ACEP Now]
+  resus_critical_care: [EMCrit, PulmCrit, IBCC, The Bottom Line, Critical Care Reviews, Intensive Care Network, Maryland CC Project, PulmCCM]
+  pediatrics: [Don't Forget the Bubbles, PEM Playbook, Pediatric EM Morsels]
+  pocus: [The POCUS Atlas, Ultrasound Podcast, 5 Minute Sono]
+  ecg: [Dr. Smith's ECG Blog, ECG Weekly]
+  toxicology: [The Poison Review]
+  prehospital: [PHARM, Sydney HEMS Podcast]
+  trauma: [Regions Trauma Pro]
+  education: [I Teach EM]

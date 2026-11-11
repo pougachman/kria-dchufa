@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}קריאה דחופה{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <span class="brand">קריאה דחופה</span>
+      <span class="tagline">ספרות נבחרת לתוכניות התמחות ברפואה דחופה</span>
+    </div>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="container">המבנה של הניתוחים בהשראת The Skeptics' Guide to Emergency Medicine (SGEM).</div>
+  </footer>
+</body>
+</html>
