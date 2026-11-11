@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2025//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_250101.dtd">
+<!-- Synthetic records that follow the PubMed DTD. Not real articles. -->
+<PubmedArticleSet>
+  <PubmedArticle>
+    <MedlineCitation Status="MEDLINE" Owner="NLM">
+      <PMID Version="1">90000001</PMID>
+      <Article PubModel="Print-Electronic">
+        <Journal>
+          <JournalIssue CitedMedium="Internet">
+            <PubDate><Year>2026</Year><Month>Nov</Month></PubDate>
+          </JournalIssue>
+          <Title>Annals of emergency medicine</Title>
+        </Journal>
+        <ArticleTitle>Early <i>Balanced</i> Crystalloids in Sepsis: A Randomized Trial.</ArticleTitle>
+        <ELocationID EIdType="doi" ValidYN="Y">10.9999/SYNTH.0001</ELocationID>
+        <Abstract>
+          <AbstractText Label="STUDY OBJECTIVE" NlmCategory="OBJECTIVE">To test fluids.</AbstractText>
+          <AbstractText Label="RESULTS" NlmCategory="RESULTS">Mortality was 20% vs 25%.</AbstractText>
+        </Abstract>
+        <AuthorList CompleteYN="Y">
+          <Author ValidYN="Y"><LastName>Cohen</LastName><ForeName>Dana</ForeName><Initials>D</Initials></Author>
+          <Author ValidYN="N"><LastName>Wrong</LastName><Initials>W</Initials></Author>
+          <Author ValidYN="Y"><CollectiveName>Synthetic Trial Group</CollectiveName></Author>
+        </AuthorList>
+        <Language>eng</Language>
+        <PublicationTypeList>
+          <PublicationType UI="D016449">Randomized Controlled Trial</PublicationType>
+          <PublicationType UI="D016428">Journal Article</PublicationType>
+        </PublicationTypeList>
+      </Article>
+      <MedlineJournalInfo>
+        <MedlineTA>Ann Emerg Med</MedlineTA>
+        <NlmUniqueID>8002646</NlmUniqueID>
+      </MedlineJournalInfo>
+      <MeshHeadingList>
+        <MeshHeading><DescriptorName UI="D018805" MajorTopicYN="Y">Sepsis</DescriptorName></MeshHeading>
+      </MeshHeadingList>
+      <KeywordList Owner="NOTNLM"><Keyword MajorTopicYN="N">fluids</Keyword></KeywordList>
+    </MedlineCitation>
+    <PubmedData>
+      <History>
+        <PubMedPubDate PubStatus="entrez"><Year>2026</Year><Month>10</Month><Day>7</Day></PubMedPubDate>
+      </History>
+      <PublicationStatus>aheadofprint</PublicationStatus>
+      <ArticleIdList>
+        <ArticleId IdType="pubmed">90000001</ArticleId>
+        <ArticleId IdType="doi">10.9999/synth.0001</ArticleId>
+        <ArticleId IdType="pmc">PMC9000001</ArticleId>
+      </ArticleIdList>
+    </PubmedData>
+  </PubmedArticle>
+  <PubmedArticle>
+    <MedlineCitation Status="Publisher" Owner="NLM">
+      <PMID Version="1">90000002</PMID>
+      <CommentsCorrectionsList>
+        <CommentsCorrections RefType="RetractionIn"><RefSource>Synthetic. 2026</RefSource></CommentsCorrections>
+      </CommentsCorrectionsList>
+      <Article PubModel="Electronic">
+        <Journal>
+          <JournalIssue CitedMedium="Internet">
+            <PubDate><MedlineDate>2026 Sep-Oct</MedlineDate></PubDate>
+          </JournalIssue>
+          <Title>Resuscitation</Title>
+        </Journal>
+        <ArticleTitle>In reply.</ArticleTitle>
+        <ELocationID EIdType="doi" ValidYN="Y">10.9999/synth.0002</ELocationID>
+        <Language>fre</Language>
+        <PublicationTypeList>
+          <PublicationType UI="D016428">Journal Article</PublicationType>
+        </PublicationTypeList>
+      </Article>
+      <MedlineJournalInfo>
+        <MedlineTA>Resuscitation</MedlineTA>
+        <NlmUniqueID>0332173</NlmUniqueID>
+      </MedlineJournalInfo>
+    </MedlineCitation>
+    <PubmedData>
+      <History>
+        <PubMedPubDate PubStatus="entrez"><Year>2026</Year><Month>Oct</Month><Day>31</Day></PubMedPubDate>
+      </History>
+      <PublicationStatus>epublish</PublicationStatus>
+      <ArticleIdList>
+        <ArticleId IdType="pubmed">90000002</ArticleId>
+      </ArticleIdList>
+    </PubmedData>
+  </PubmedArticle>
+</PubmedArticleSet>

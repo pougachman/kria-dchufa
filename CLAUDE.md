@@ -37,7 +37,12 @@ pytest                 # all tests
 ruff check .           # lint
 alembic upgrade head   # apply migrations (uses DATABASE_URL)
 uvicorn kria.web.main:app --reload
+python -m kria.pipeline.ingest 2026-10   # ingest one month from PubMed, print count report
+python -m kria.pipeline.journals         # re-map journal names after editing data/*.yaml
 ```
+
+Tests never call the network; live checks are run by hand. A local Postgres 16 is available at
+/usr/lib/postgresql/16/bin (run it as the postgres user) for checking migrations.
 
 ## Layout
 
@@ -46,14 +51,16 @@ uvicorn kria.web.main:app --reload
 - `kria/appraisal/` SGEM-style appraisal engine; `calc.py` holds the statistics
 - `kria/questions/` MCQ and discussion questions
 - `kria/db/` models; `migrations/` Alembic
-- `data/` taxonomy (33 topics) and sources
+- `data/` taxonomy (33 topics), sources, `journals.yaml` (generated NLM mapping, with
+  hand-checked `overrides`), `filters.yaml` (versioned code filter)
 - `prompts/` versioned prompts; `eval/` gold standard and SGEM benchmark
 
 ## Milestone status
 
 - [ ] M0 infrastructure: code done (app skeleton, health check, migrations, CI, Dockerfile,
       calc module); Railway deploy with Postgres still pending
-- [ ] M1 PubMed ingestion
+- [ ] M1 PubMed ingestion: code done; October 2026 run twice on local Postgres with identical
+      results (3,451 records, 2,398 kept). Needs a run on Railway after the M0 deploy
 - [ ] M2 screening and scoring
 - [ ] M3 approval screen and digest
 - [ ] M4 appraisal engine

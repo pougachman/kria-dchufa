@@ -35,8 +35,12 @@ appraisals, ~10 min on topics/sources. Cycle: pipeline runs on the 1st; editor a
 ## Taxonomy and sources
 
 `data/taxonomy.yaml` (33 topics, 3 groups) and `data/sources.yaml`. Each topic gets a versioned
-search definition (MeSH terms, keywords, journals). v1: programs choose a subset of base topics
-and weights. Later: program-defined topics with their own query, always mapped to a base topic.
+PubMed query. Query v1 (M1) is journal-based: the topic's own journals, plus two shared pools
+(core EM journals, general journals) whose articles get topics from screening in M2. MeSH and
+keyword terms can be added in later versions. Journal names are mapped to exact NLM Catalog
+records in `data/journals.yaml` (`python -m kria.pipeline.journals`). v1: programs choose a
+subset of base topics and weights. Later: program-defined topics with their own query, always
+mapped to a base topic.
 
 FOAMed sites and organizations are ranking signals and commentary links, never article sources.
 EM:RAP requires a subscription and is not scanned.
@@ -46,6 +50,14 @@ EM:RAP requires a subscription and is not scanned.
 Sources (PubMed, Crossref, FOAMed RSS) -> code filter (dedupe by PMID/DOI, publication type)
 -> LLM screening and scoring -> ranked shortlist -> national editor (automatic/customized) or
 program curator (curated) -> digest / program list -> reading lists and questions.
+
+Retrieval (M1): a month = PubMed records created in that month (`[crdt]`), which never changes,
+so a re-run returns the same set. Code filter v1 (`data/filters.yaml`): drops letters,
+editorials, comments, errata, retractions, preprints, non-English records, letters/replies
+recognised by title when there is no abstract, and articles published more than 6 months before
+the month (bulk back-issue deposits). Records without an abstract are kept and flagged, because
+ahead-of-print studies often have none yet. Excluded records stay in the database with the
+reason. October 2026: 3,451 records, 2,398 kept for screening.
 
 High yield = high score (1-5, one-sentence reason) on at least one of:
 practice-changing in an Israeli ED; core board-exam (Shalav A/B) material; journal-club worthy

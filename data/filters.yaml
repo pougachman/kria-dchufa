@@ -1,0 +1,50 @@
+# Code filter applied after PubMed retrieval and before language-model screening (M2).
+# Excluded articles are kept in the database with the reason, so the filter can be audited and
+# the screening gold standard can check that nothing important was dropped here.
+# Change `version` whenever a rule changes; every ingest run records the version it used.
+version: 1
+
+# Always left out, whatever other publication types the record has.
+always_exclude: [Retracted Publication, Retraction of Publication, Published Erratum,
+  Expression of Concern, Preprint]
+
+# Left out unless the record also has one of the `keep_types`.
+exclude: [Letter, Comment, Editorial, News, Newspaper Article, Biography, Portrait, Interview,
+  Congress, Lecture, Address, Autobiography, Personal Narrative, Patient Education Handout,
+  Video-Audio Media, Webcast, Introductory Journal Article, Historical Article]
+
+keep_types: [Randomized Controlled Trial, Pragmatic Clinical Trial, Equivalence Trial,
+  Controlled Clinical Trial, Clinical Trial, "Clinical Trial, Phase II",
+  "Clinical Trial, Phase III", "Clinical Trial, Phase IV", Multicenter Study, Meta-Analysis,
+  Network Meta-Analysis, Systematic Review, Practice Guideline, Guideline,
+  Consensus Development Conference, Observational Study, Review]
+
+# Records without an abstract are NOT left out: ahead-of-print records of real studies often have
+# no abstract yet (October 2026 included an RCT in Gastroenterology and a diagnostic accuracy
+# study in Emerg Med J). They are flagged "no_abstract" and screened on title and type.
+exclude_no_abstract: false
+
+# Letters and replies that publishers tag only as "Journal Article". Applied only to records
+# without an abstract. Python regular expressions, matched case-insensitively at the start of
+# the title.
+title_exclude_if_no_abstract:
+  - "in reply\\b"
+  - "reply\\b"
+  - "authors'? reply\\b"
+  - "response to\\b"
+  - "letter to (the )?editor\\b"
+  - "correction to\\b"
+  - "correction:"
+  - "erratum\\b"
+  - "corrigendum\\b"
+  - "notice of retraction\\b"
+  - "retraction:"
+
+# Articles published more than this many months before the scanned month are left out. PubMed
+# can create records for old articles in bulk when it starts indexing a journal (in October 2026
+# it added NEJM AI's back issues from 2024 on). Partial dates are rounded up, so a record is never
+# treated as older than it might be.
+max_age_months: 6
+
+# Residents read in English; records in other languages are left out.
+languages: [eng]

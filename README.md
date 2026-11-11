@@ -15,6 +15,7 @@ cp .env.example .env
 alembic upgrade head
 uvicorn kria.web.main:app --reload
 pytest
+python -m kria.pipeline.ingest 2026-10   # one month from PubMed
 ```
 
 ## Deploy (Railway)
