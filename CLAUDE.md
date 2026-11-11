@@ -47,7 +47,8 @@ uvicorn kria.web.main:app --reload
 
 ## Milestone status
 
-- [x] M0 infrastructure (app skeleton, health check, migrations, CI, Dockerfile, calc module)
+- [ ] M0 infrastructure: code done (app skeleton, health check, migrations, CI, Dockerfile,
+      calc module); Railway deploy with Postgres still pending
 - [ ] M1 PubMed ingestion
 - [ ] M2 screening and scoring
 - [ ] M3 approval screen and digest
