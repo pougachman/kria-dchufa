@@ -15,9 +15,13 @@ The live, authoritative versions are in the Claude doc linked from those files.
 3. Nothing reaches residents without human approval (national editor or program curator).
 4. Every model output is stored with the model name and prompt version.
 5. UI text is Hebrew, right-to-left. Generated content (summaries, appraisals, questions) is English.
-6. Full text only through authorized routes: open access (PMC, Europe PMC, Unpaywall) or
-   publisher TDM APIs with the library's agreement. Never scrape library portals or use
-   anyone's library credentials. Never store or share article PDFs between programs.
+6. Full text only through authorized routes: open access (PMC, Europe PMC, Unpaywall) first,
+   otherwise a PDF that the requesting editor or curator downloaded with their own access and
+   uploaded. Publisher TDM APIs only if a library agrees later (Shamir's will not). Never scrape
+   library portals, never automate downloads, never use anyone's library credentials.
+   An uploaded PDF is visible only to its uploader, is deleted when the appraisal is approved
+   (30 days at most), and is never shared between programs. The library keeps the appraisal
+   and the link only.
 7. Secrets only in environment variables. Never commit keys.
 
 ## Stack

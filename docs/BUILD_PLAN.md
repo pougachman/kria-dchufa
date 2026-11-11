@@ -12,7 +12,7 @@ M4 does not depend on the pipeline and can be built in parallel with M1-M3.
 | M2 | Screening and scoring | Every article has relevance, topics, design, three scored dimensions with reasons; cost and time logged | M1 |
 | Check | Screening sensitivity | Sensitivity vs 200 hand-labeled articles meets the agreed threshold (gate 1) | M2 |
 | M3 | Approval screen and digest | One month's digest approved and emailed; editor time measured | M2 |
-| M4 | Appraisal engine | 10 benchmark articles appraised, every number anchored to a page, calc unit tests pass | M0 |
+| M4 | Appraisal engine, open-access lookup, PDF upload | 10 benchmark articles appraised from open access or an uploaded PDF (also from a phone), every number anchored to a page, PDF deleted after approval, calc unit tests pass | M0 |
 | Check | Digest in 90 minutes | Editor approves a real digest within 90 minutes (gate 2) | M3 |
 | M5 | Programs and roles | A second program's curator sees only their program and rates candidates | M3 |
 | M6 | Reading lists and questions | A resident gets a list with a due date and answers questions; curator sees completion | M4, M5 |

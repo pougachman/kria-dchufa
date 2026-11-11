@@ -70,12 +70,24 @@ is "not reported"; no reference that was not retrieved; library entry only after
 
 ## Full text
 
-The monthly scan needs abstracts only. Full text is needed only for deep appraisal (~10/month):
+The monthly scan needs abstracts only. Full text is needed only for deep appraisal (~10/month
+nationally, since each appraisal enters the shared library once):
 1. Open access, fully automatic: PubMed Central, Europe PMC, Unpaywall.
-2. Subscribed content via publisher TDM APIs (Elsevier, Wiley), which require the library's
-   agreement and either an institutional token or requests from inside the Shamir network.
+2. Subscribed content: manual upload. Whoever requests the appraisal (national editor or a
+   program curator) sees that no open-access copy was found, gets the DOI link, downloads the
+   PDF with their own library access and uploads it (desktop or phone). The system checks that
+   the DOI or title in the file matches the article before appraising.
 3. Otherwise: abstract-only, labeled limited.
-Never: scraping the library portal or using anyone's credentials.
+
+The uploaded PDF is private to the uploader, used for the appraisal and page anchors, and
+deleted when the appraisal is approved (30 days at most). The shared library keeps only the
+appraisal and the link. Anthropic's commercial terms say it may not train models on API
+content. Shamir's license terms on uploading articles to AI tools were not checked with the
+library.
+
+Later, if a library agrees: Elsevier and Wiley TDM APIs could replace most manual uploads.
+Never: scraping the library portal, automated or bulk downloading, or using anyone's
+credentials.
 
 ## Reading lists and questions
 
