@@ -6,7 +6,11 @@ Each milestone is a vertical slice that ends in something working end to end.
 
 Status (2026-11-12): M0 deployed on Railway (https://kria-dchufa-production.up.railway.app).
 M1 code done and run on October 2026 against live PubMed on a local Postgres twice, with
-identical results; the first run on Railway comes with the monthly job. Next: M2.
+identical results. M2 code done and tested offline (no live model call yet). The daily job
+(`kria.pipeline.monthly`, a Railway cron service) runs both on Railway: it ingests October 2026
+and submits screening on its first run, and collects the batch the next day. M1 and M2 are done
+when that real run is visible on /status. Next: the M2 sensitivity check (needs the gold
+standard), then M3.
 M4 does not depend on the pipeline and can be built in parallel with M1-M3.
 
 | Milestone | What is built | Done when | Depends on |
@@ -34,7 +38,31 @@ Defaults are in effect until he decides; record each answer here and in the live
   yet approved.
 - Size of the national digest per month: open.
 - Gold standard: 2-3 program directors to label ~200 articles; SGEM benchmark list of ~10
-  articles: not started.
+  articles: not started. Also open: which month(s) to sample from, and how (a plain random
+  sample of 200 would contain only a few high-yield articles), and the sensitivity threshold
+  for gate 1.
+- Screening defaults (M2, in `prompts/screening.v1.md` and `kria/pipeline/`), until Yoav
+  decides otherwise: when unsure about relevance, the model says relevant (sensitivity first);
+  high yield = highest of the three scores, shortlist = relevant articles ranked by it, 40 per
+  month; "score 4-5" is counted as high yield in the reports; an article whose screening fails
+  is retried up to 3 times.
+
+## M2 as built (2026-11-12)
+
+- Model: Claude Haiku 5.5 through the Message Batches API (half price, done within 24 hours),
+  effort low, structured JSON output. Prompt `prompts/screening.v1.md` (33 topics with English
+  labels from `data/taxonomy.yaml`); every run stores model, prompt version, prompt and schema
+  hashes and settings; every article's result stores the served model and prompt version.
+- Output per article: relevant, 1-3 topics, design (24 fixed categories), practice-changing,
+  board-exam and journal-club scores 1-5 with a one-sentence reason each, and a summary of up
+  to three sentences. Code validates every answer; invalid, refused, truncated or errored
+  results are stored with the raw output or error and retried.
+- Ranking (`kria/pipeline/rank.py`, code only): highest score, then design, journal tier,
+  total score, PMID. FOAMed coverage and past ratings join when those signals exist.
+- Cost and time: tokens and USD per article and per run (`data/pricing.yaml`), batch time from
+  the API's own timestamps. Estimate for October 2026 (2,398 articles): about 0.6 USD.
+- Visibility: `python -m kria.pipeline.screen report <month>` and the Hebrew page /status
+  (counts and costs only, no article content, since nothing is approved yet).
 
 ## Evaluation
 

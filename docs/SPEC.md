@@ -59,6 +59,11 @@ the month (bulk back-issue deposits). Records without an abstract are kept and f
 ahead-of-print studies often have none yet. Excluded records stay in the database with the
 reason. October 2026: 3,451 records, 2,398 kept for screening.
 
+Screening (M2): Claude Haiku via the Message Batches API reads each kept record (title,
+journal, types, MeSH, keywords, abstract) and returns validated JSON: relevance, 1-3 topics,
+design, the three scores below with reasons, and a short summary. Prompt `screening.v1`; see
+`docs/BUILD_PLAN.md` "M2 as built" for defaults.
+
 High yield = high score (1-5, one-sentence reason) on at least one of:
 practice-changing in an Israeli ED; core board-exam (Shalav A/B) material; journal-club worthy
 methodology (good or flawed). Ties broken by design, journal, FOAMed coverage, past ratings.

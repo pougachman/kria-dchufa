@@ -14,3 +14,11 @@ body {
 main { padding: 24px 16px; }
 .card { background: #ffffff; border-radius: 8px; padding: 20px 24px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
 .site-footer { color: #7b8794; font-size: .8rem; padding: 16px 0; text-align: center; }
+.checks { padding-inline-start: 20px; }
+.ok { color: #047857; }
+.bad { color: #b91c1c; }
+.month { text-align: right; margin-top: 28px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { border-bottom: 1px solid #e4e7eb; padding: 6px 8px; text-align: start; white-space: nowrap; }
+th { background: #f5f6f8; }
