@@ -139,7 +139,7 @@ class ScreeningRun(Base):
     prompt_sha256: Mapped[str] = mapped_column(String(64))
     settings: Mapped[dict] = mapped_column(JsonType)
     batch_id: Mapped[str | None] = mapped_column(String(128))
-    # submitted -> ok | failed
+    # submitting -> submitted -> ok, or failed at any step (error says why)
     status: Mapped[str] = mapped_column(String(16), default="submitted", index=True)
     submitted_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     ended_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))

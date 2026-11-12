@@ -69,6 +69,7 @@ def pipeline_status(session: Session) -> list[dict]:
         report = run.report or {}
         m["ingest"] = {
             "status": run.status,
+            "error": (run.error or "")[:300] or None,
             "finished_at": run.finished_at,
             "total": report.get("total_unique"),
             "kept": report.get("kept"),
@@ -94,6 +95,7 @@ def pipeline_status(session: Session) -> list[dict]:
                 "relevant": totals.get("relevant"),
                 "high_yield": totals.get("high_yield_4_plus"),
                 "not_yet_screened": totals.get("not_yet_screened"),
+                "error": (run.error or "")[:300] or None,
             }
         )
     return sorted(months.values(), key=lambda m: m["month"], reverse=True)

@@ -127,3 +127,30 @@ def test_status_page_without_database_tables():
     finally:
         app.dependency_overrides.clear()
     assert r.status_code == 200 and "מסד הנתונים עדיין לא מוכן" in r.text
+
+
+def test_status_page_shows_why_a_run_failed(ingested):  # noqa: F811
+    class Rejecting(FakeBatches):
+        def create(self, requests):
+            raise RuntimeError("400 invalid_request_error: bad schema")
+
+    try:
+        screen.submit_month(ingested, Rejecting(), "2026-10")
+    except RuntimeError:
+        pass
+    app.dependency_overrides[get_session] = lambda: ingested
+    try:
+        r = TestClient(app).get("/status")
+    finally:
+        app.dependency_overrides.clear()
+    assert "נכשלה" in r.text and "bad schema" in r.text
+
+
+def test_monthly_main_reports_failure_with_exit_code(monkeypatch, capsys):
+    def boom(*a, **k):
+        raise RuntimeError("database unreachable")
+
+    monkeypatch.setattr(monthly, "step", boom)
+    assert monthly.main(["2026-10"]) == 1
+    out = capsys.readouterr()
+    assert "database unreachable" in out.err and "monthly job failed" in out.out

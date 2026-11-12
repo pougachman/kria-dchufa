@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import sys
+import traceback
 
 from sqlalchemy.orm import Session
 
@@ -35,7 +36,9 @@ def step(session: Session, month: str, pubmed, batches, wait: bool = False) -> s
     """Do the missing steps for the month and say what happened."""
     done = ""
     if screen.latest_ingest_run(session, month) is None:
+        screen.log(f"ingesting {month} from PubMed")
         run = ingest.ingest_month(session, pubmed(), month)
+        screen.log(f"ingest done: {run.report['kept']} of {run.report['total_unique']} kept")
         done = f"ingested {month}: {run.report['kept']} of {run.report['total_unique']} kept; "
     return done + _screening_step(session, month, batches, wait)
 
@@ -83,8 +86,15 @@ def main(argv: list[str] | None = None) -> int:
     def batches():
         return ClaudeBatches(api_key=settings.anthropic_api_key)
 
-    with SessionLocal() as session:
-        print(step(session, month, pubmed, batches, wait=args.wait))
+    screen.log(f"monthly job started for {month}")
+    try:
+        with SessionLocal() as session:
+            screen.log(step(session, month, pubmed, batches, wait=args.wait))
+    except Exception:
+        traceback.print_exc()
+        sys.stderr.flush()
+        screen.log("monthly job failed (details above)")
+        return 1
     return 0
 
 

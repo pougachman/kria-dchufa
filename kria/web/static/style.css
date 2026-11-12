@@ -22,3 +22,4 @@ main { padding: 24px 16px; }
 table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 th, td { border-bottom: 1px solid #e4e7eb; padding: 6px 8px; text-align: start; white-space: nowrap; }
 th { background: #f5f6f8; }
+.error { font-family: monospace; font-size: .85rem; unicode-bidi: isolate; }
