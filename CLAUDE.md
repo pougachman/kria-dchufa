@@ -59,8 +59,9 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
 
 ## Milestone status
 
-- [ ] M0 infrastructure: code done (app skeleton, health check, migrations, CI, Dockerfile,
-      calc module); Railway deploy with Postgres still pending
+- [x] M0 infrastructure: deployed on Railway at https://kria-dchufa-production.up.railway.app
+      (home page verified 2026-11-12). Yoav can open /healthz to confirm database_kind is
+      postgresql; if it says sqlite, DATABASE_URL in Railway needs fixing
 - [ ] M1 PubMed ingestion: code done; October 2026 run twice on local Postgres with identical
       results (3,451 records, 2,398 kept). Needs a run on Railway after the M0 deploy
 - [ ] M2 screening and scoring

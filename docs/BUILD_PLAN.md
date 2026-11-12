@@ -4,8 +4,9 @@ Live version (Hebrew): https://claude.ai/artifact/RdJj7cDDeMd3STX1Y9E45Z (tab "×
 
 Each milestone is a vertical slice that ends in something working end to end.
 
-Status (2026-11-11): M0 and M1 code done and tested. M1 was run on October 2026 against live
-PubMed on a local Postgres twice, with identical results. Both still need the Railway deploy.
+Status (2026-11-12): M0 deployed on Railway (https://kria-dchufa-production.up.railway.app).
+M1 code done and run on October 2026 against live PubMed on a local Postgres twice, with
+identical results; the first run on Railway comes with the monthly job. Next: M2.
 M4 does not depend on the pipeline and can be built in parallel with M1-M3.
 
 | Milestone | What is built | Done when | Depends on |
