@@ -16,6 +16,8 @@
     {{ undecided_shown }} מהם עוד בלי החלטה. זמן עבודה החודש: {{ minutes }} דקות.
   </p>
   <p class="text-slate-500 text-sm mt-1">רק מאמרים שתאשר ייכנסו לדייג'סט. הסיכומים והנימוקים נכתבו על ידי המודל ולא נבדקו.</p>
+  <p class="text-slate-500 text-sm mt-1">★ סמן עד {{ featured_max }} מאמרים מאושרים כ"מובילים": הם יופיעו בראש המייל תחת "החודש חובה לקרוא". אם לא תסמן, ייבחרו שלושת המאושרים בדירוג הגבוה ביותר. מסומנים כעת: {{ featured }}.</p>
+  {% if featured_full %}<p class="mt-2 rounded-lg bg-amber-100 text-amber-900 px-4 py-2">כבר סימנת {{ featured_max }} מובילים. כדי לסמן מאמר אחר, הסר קודם את הסימון מאחד מהם.</p>{% endif %}
 </div>
 
 <ol class="space-y-4">
@@ -25,6 +27,7 @@
       class="rounded-xl shadow-sm p-5 {% if state == 'approved' %}bg-emerald-50 ring-2 ring-emerald-500{% elif state == 'rejected' %}bg-slate-50 opacity-60{% else %}bg-white{% endif %}">
     <div class="flex flex-wrap items-center gap-2 text-sm mb-2">
       <span class="font-bold text-slate-500">#{{ item.rank }}</span>
+      {% if item.featured %}<span class="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 font-semibold">★ מוביל</span>{% endif %}
       <span class="rounded-full bg-blue-100 text-blue-800 px-2.5 py-0.5 font-semibold">ציון {{ item.score }}</span>
       <span class="rounded-full bg-slate-100 px-2.5 py-0.5">{{ designs.get(item.design, item.design) }}</span>
       {% for t in item.topics %}<span class="rounded-full bg-violet-100 text-violet-800 px-2.5 py-0.5">{{ topics.get(t, t) }}</span>{% endfor %}
@@ -58,6 +61,11 @@
       <input type="hidden" name="show" value="{{ show }}">
       {% if state == 'approved' %}
         <span class="rounded-lg bg-emerald-600 text-white px-4 py-2 font-semibold">✓ אושר</span>
+        {% if item.featured %}
+        <button name="decision" value="unfeature" class="rounded-lg bg-amber-400 text-amber-950 px-4 py-2 font-semibold hover:bg-amber-300">★ מוביל</button>
+        {% else %}
+        <button name="decision" value="feature" class="rounded-lg border border-amber-400 text-amber-700 px-4 py-2 hover:bg-amber-50">☆ סמן כמוביל</button>
+        {% endif %}
         <button name="decision" value="clear" class="rounded-lg border border-slate-300 px-4 py-2 hover:bg-white">ביטול</button>
       {% elif state == 'rejected' %}
         <span class="rounded-lg bg-slate-500 text-white px-4 py-2 font-semibold">נדחה</span>

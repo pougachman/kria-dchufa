@@ -21,6 +21,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -216,6 +217,8 @@ class EditorDecision(Base):
     screening_id: Mapped[int | None] = mapped_column(ForeignKey("screenings.id"))
     decision: Mapped[str] = mapped_column(String(16))  # approved | rejected
     rank: Mapped[int | None] = mapped_column(Integer)  # rank shown when decided
+    # One of the (up to 3) articles the editor puts at the top of the digest.
+    featured: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     decided_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
 
 

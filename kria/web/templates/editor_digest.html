@@ -12,6 +12,7 @@
 {% else %}
   <div class="bg-white rounded-xl shadow-sm p-5 mb-5">
     <p>{{ count }} מאמרים מאושרים. כך ייראה המייל:</p>
+    {% if top %}<p class="text-sm text-slate-600 mt-1">בראש המייל ("החודש חובה לקרוא"): <span class="en">{{ top | map(attribute="title") | join(" · ") }}</span></p>{% endif %}
     {% if mail_ready %}
       <p class="text-sm text-slate-600 mt-2">יישלח אל: <span class="en">{{ recipients | join(", ") }}</span></p>
       <form method="post" action="/editor/{{ month }}/digest/send" class="mt-4"

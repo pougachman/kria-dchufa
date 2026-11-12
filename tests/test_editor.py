@@ -100,12 +100,12 @@ def test_decide_approve_reject_clear_and_events(screened):
 def test_digest_contains_only_approved_articles_grouped_by_topic(screened):
     dg.decide(screened, "2026-10", article_id(screened, "101"), "approved")
     dg.decide(screened, "2026-10", article_id(screened, "103"), "rejected")
-    groups = dg.approved_groups(screened, "2026-10")
-    assert [(g["name"], [i["pmid"] for i in g["items"]]) for g in groups] == [
-        ("זיהומים וספסיס", ["101"])
-    ]
-    subject, html, text = dg.render("2026-10", groups, "https://example.org")
-    assert subject == "קריאה דחופה: מאמרים נבחרים, אוקטובר 2026"
+    digest = dg.content(screened, "2026-10")
+    assert [i["pmid"] for i in digest["top"]] == ["101"] and digest["groups"] == []
+    assert digest["count"] == 1 and digest["top"][0]["topic_names"][0] == "זיהומים וספסיס"
+    subject, html, text = dg.render("2026-10", digest, "https://example.org")
+    assert subject == "קריאה דחופה: 1 מאמרים נבחרים, אוקטובר 2026"
+    assert "החודש חובה לקרוא" in html
     assert "Fluids in sepsis" in html and "Cooling after arrest" not in html
     assert "https://pubmed.ncbi.nlm.nih.gov/101/" in html and 'dir="rtl"' in html
     assert "Large trial with a mortality outcome." in html  # reason for the top score
@@ -251,3 +251,39 @@ def test_healthz_reports_m3_settings_without_values(client):
     assert body["editor_password"] is True
     assert isinstance(body["resend_api_key"], bool) and isinstance(body["digest_recipients"], int)
     assert PASSWORD not in json.dumps(body)
+
+
+def test_top_articles_are_marked_or_the_best_ranked_and_not_repeated(screened):
+    a101, a103 = article_id(screened, "101"), article_id(screened, "103")
+    dg.decide(screened, "2026-10", a101, "approved")
+    dg.decide(screened, "2026-10", a103, "approved")
+    monkey_max = dg.FEATURED
+    dg.FEATURED = 1  # with one slot, the default top article is the best ranked
+    try:
+        d = dg.content(screened, "2026-10")
+        assert [i["pmid"] for i in d["top"]] == ["101"]
+        assert [i["pmid"] for g in d["groups"] for i in g["items"]] == ["103"]
+        assert dg.feature(screened, "2026-10", a103, True)  # the editor's choice wins
+        d = dg.content(screened, "2026-10")
+        assert [i["pmid"] for i in d["top"]] == ["103"]
+        assert [i["pmid"] for g in d["groups"] for i in g["items"]] == ["101"]
+        assert not dg.feature(screened, "2026-10", a101, True)  # slots full
+        assert dg.feature(screened, "2026-10", a103, False)
+        dg.decide(screened, "2026-10", a101, "rejected")
+        assert not dg.feature(screened, "2026-10", a101, True)  # only approved articles
+    finally:
+        dg.FEATURED = monkey_max
+
+
+def test_feature_button_on_the_review_screen(client, screened):
+    login(client)
+    a101 = article_id(screened, "101")
+    dg.decide(screened, "2026-10", a101, "approved")
+    assert "☆ סמן כמוביל" in client.get("/editor/2026-10").text
+    r = client.post(
+        "/editor/2026-10/decide",
+        data={"article_id": a101, "decision": "feature"},
+        follow_redirects=False,
+    )
+    assert r.headers["location"] == f"/editor/2026-10?show=40#a{a101}"
+    assert "★ מוביל" in client.get("/editor/2026-10").text

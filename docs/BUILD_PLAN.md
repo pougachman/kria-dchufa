@@ -110,5 +110,9 @@ tokens each: about 3.5 USD on Sonnet 5.5 or 7 USD on Opus 5.5. Hosting and email
   sending is stored (articles, subject, HTML, text, recipients, Resend id, editor minutes).
 - Settings (Railway variables on the site service): `EDITOR_PASSWORD`, `RESEND_API_KEY`,
   `DIGEST_RECIPIENTS` (comma-separated), optional `DIGEST_FROM`.
+- Digest design v2 (Yoav, 2026-11-12, after the first email: "readable but not inviting"):
+  a navy header with the month, a "must read this month" section with up to 3 top articles as
+  cards (marked ★ by the editor; if none are marked, the 3 best-ranked approved articles), then
+  the other articles by topic with a topic index. Top articles are not repeated below.
 - Styles: Tailwind 3.4.16 compiled to `kria/web/static/editor.css` (no runtime CDN, which
   hospital networks may block); command in `tailwind.config.js`.
