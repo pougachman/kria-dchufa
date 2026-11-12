@@ -5,12 +5,10 @@ Live version (Hebrew): https://claude.ai/artifact/RdJj7cDDeMd3STX1Y9E45Z (tab "×
 Each milestone is a vertical slice that ends in something working end to end.
 
 Status (2026-11-12): M0 deployed on Railway (https://kria-dchufa-production.up.railway.app).
-M1 code done and run on October 2026 against live PubMed on a local Postgres twice, with
-identical results. M2 code done and tested offline (no live model call yet). The daily job
-(`kria.pipeline.monthly`, a Railway cron service) runs both on Railway: it ingests October 2026
-and submits screening on its first run, and collects the batch the next day. M1 and M2 are done
-when that real run is visible on /status. Next: the M2 sensitivity check (needs the gold
-standard), then M3.
+M1 and M2 done: the daily job (`monthly-job`, a Railway cron service at 05:00 UTC) ingested
+October 2026 on Railway (3,451 records, 2,398 kept, identical to the local runs) and screened
+all 2,398 with Haiku 5.5 in one batch: 949 relevant, 291 scored 4-5, 14.3 minutes, 0.30 USD.
+Next: the M2 sensitivity check (needs the gold standard), then M3.
 M4 does not depend on the pipeline and can be built in parallel with M1-M3.
 
 | Milestone | What is built | Done when | Depends on |
@@ -47,6 +45,13 @@ Defaults are in effect until he decides; record each answer here and in the live
   month; "score 4-5" is counted as high yield in the reports; an article whose screening fails
   is retried up to 3 times.
 
+- Articles without an abstract (M2 finding): 854 of October's 2,398 kept records (36%) had
+  no abstract yet and were screened on title, journal and type only. Open: whether to re-check
+  them in PubMed the next month and re-screen those that gained an abstract.
+- Score calibration (M2 finding): 291 of 949 relevant October articles scored 4-5, more than
+  the prompt intends ("reserve 4 and 5"). To review against the gold standard and in the M3
+  approval screen before changing the prompt (any change becomes `screening.v2`).
+
 ## M2 as built (2026-11-12)
 
 - Model: Claude Haiku 5.5 through the Message Batches API (half price, done within 24 hours),
@@ -60,7 +65,7 @@ Defaults are in effect until he decides; record each answer here and in the live
 - Ranking (`kria/pipeline/rank.py`, code only): highest score, then design, journal tier,
   total score, PMID. FOAMed coverage and past ratings join when those signals exist.
 - Cost and time: tokens and USD per article and per run (`data/pricing.yaml`), batch time from
-  the API's own timestamps. Estimate for October 2026 (2,398 articles): about 0.6 USD.
+  the API's own timestamps. October 2026 (2,398 articles): 0.30 USD, 14.3 minutes.
 - Visibility: `python -m kria.pipeline.screen report <month>` and the Hebrew page /status
   (counts and costs only, no article content, since nothing is approved yet).
 
