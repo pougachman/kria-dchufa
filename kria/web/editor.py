@@ -143,6 +143,7 @@ def review(
     request: Request,
     month: str,
     show: int = PAGE,
+    full: int = 0,
     session: Session = Depends(_session),  # noqa: B008
 ):
     if not is_editor(request):
@@ -167,6 +168,9 @@ def review(
             "approved": approved,
             "rejected": rejected,
             "undecided_shown": sum(1 for i in shown if i["decision"] is None),
+            "featured": sum(1 for i in items if i["featured"]),
+            "featured_max": dg.FEATURED,
+            "featured_full": bool(full),
             "minutes": dg.month_minutes(session, month),
             "topics": taxonomy,
             "designs": DESIGN_HE,
@@ -187,6 +191,10 @@ def decide(
     if not is_editor(request):
         return _to_login(request)
     _valid(month)
+    if decision in ("feature", "unfeature"):
+        ok = dg.feature(session, month, article_id, decision == "feature")
+        note = "" if ok else "&full=1"
+        return RedirectResponse(f"/editor/{month}?show={show}{note}#a{article_id}", status_code=303)
     dg.decide(session, month, article_id, None if decision == "clear" else decision)
     return RedirectResponse(f"/editor/{month}?show={show}#a{article_id}", status_code=303)
 
@@ -202,8 +210,8 @@ def digest_preview(
     if not is_editor(request):
         return _to_login(request)
     _valid(month)
-    groups = dg.approved_groups(session, month)
-    html = dg.render(month, groups, settings.public_url)[1] if groups else None
+    digest = dg.content(session, month)
+    html = dg.render(month, digest, settings.public_url)[1] if digest["count"] else None
     history = session.scalars(
         select(Digest).where(Digest.month == month).order_by(Digest.id.desc())
     ).all()
@@ -213,7 +221,8 @@ def digest_preview(
         {
             "month": month,
             "month_he": dg.month_he(month),
-            "count": sum(len(g["items"]) for g in groups),
+            "count": digest["count"],
+            "top": digest["top"],
             "email_html": html,
             "recipients": settings.recipients,
             "mail_ready": bool(settings.resend_api_key and settings.recipients),
