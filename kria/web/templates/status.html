@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}מצב הצנרת החודשית · קריאה דחופה{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>מצב הצנרת החודשית</h1>
+  <p>שליפה מ-PubMed, סינון בקוד, ואז סינון ודירוג על ידי מודל שפה. בעמוד הזה מוצגים רק מספרים ועלויות, בלי תוכן מאמרים.</p>
+  <ul class="checks">
+    <li>מפתח Claude API: {% if anthropic_key %}<strong class="ok">מוגדר</strong>{% else %}<strong class="bad">חסר</strong>{% endif %}</li>
+    <li>מפתח NCBI: {% if ncbi_key %}<strong class="ok">מוגדר</strong>{% else %}<strong class="bad">חסר</strong>{% endif %}</li>
+  </ul>
+  {% if error %}<p class="bad">{{ error }}</p>{% endif %}
+  {% if not months and not error %}<p>עדיין לא הורץ אף חודש.</p>{% endif %}
+  {% for m in months %}
+  <h2 dir="ltr" class="month">{{ m.month }}</h2>
+  {% if m.ingest %}
+  <p>שליפה מ-PubMed:
+    {% if m.ingest.status == "ok" %}<strong class="ok">הושלמה</strong>, {{ m.ingest.total }} רשומות, {{ m.ingest.kept }} עברו לסינון
+    {% elif m.ingest.status == "running" %}<strong>רצה כעת</strong>
+    {% else %}<strong class="bad">נכשלה</strong>{% endif %}
+  </p>
+  {% else %}<p>שליפה מ-PubMed: לא הורצה.</p>{% endif %}
+  {% if m.screening %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ריצת סינון</th><th>מצב</th><th>נשלחו</th><th>הצליחו</th><th>נכשלו</th><th>רלוונטיים בחודש</th><th>ציון 4-5</th><th>טרם סוננו</th><th>זמן (דקות)</th><th>עלות ($)</th><th>מודל וגרסת הנחיה</th></tr></thead>
+    <tbody>
+    {% for s in m.screening %}
+    <tr>
+      <td>{{ s.id }}</td>
+      <td>{% if s.status == "ok" %}<span class="ok">הושלמה</span>{% elif s.status == "submitted" %}ממתינה לתוצאות{% else %}<span class="bad">נכשלה</span>{% endif %}</td>
+      <td>{{ s.requested }}</td><td>{{ s.succeeded }}</td><td>{{ s.failed }}</td>
+      <td>{{ s.relevant if s.relevant is not none else "" }}</td>
+      <td>{{ s.high_yield if s.high_yield is not none else "" }}</td>
+      <td>{{ s.not_yet_screened if s.not_yet_screened is not none else "" }}</td>
+      <td>{{ s.minutes if s.minutes is not none else "" }}</td>
+      <td>{{ "%.2f"|format(s.cost_usd) }}</td>
+      <td dir="ltr">{{ s.model }} · {{ s.prompt_version }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p>סינון במודל: לא הורץ.</p>{% endif %}
+  {% endfor %}
+</section>
+{% endblock %}

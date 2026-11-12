@@ -1,7 +1,8 @@
 """Database models. Import every model here so Alembic can see it.
 
 M1 adds the ingestion tables: topics, versioned queries, articles, ingest runs, and which query
-found which article in which run. Later milestones add the rest of the model in docs/SPEC.md.
+found which article in which run. M2 adds screening runs and one screening result per article per
+run. Later milestones add the rest of the model in docs/SPEC.md.
 """
 
 from __future__ import annotations
@@ -10,8 +11,10 @@ import datetime as dt
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -117,3 +120,81 @@ class RunHit(Base):
     run_id: Mapped[int] = mapped_column(ForeignKey("ingest_runs.id"), primary_key=True)
     article_id: Mapped[int] = mapped_column(ForeignKey("articles.id"), primary_key=True)
     query_version_id: Mapped[int] = mapped_column(ForeignKey("query_versions.id"), primary_key=True)
+
+
+class ScreeningRun(Base):
+    """One screening pass over a month's articles: one Message Batch, one model, one prompt.
+
+    Records what was sent (model, prompt version and hash, settings), when (submitted, ended at
+    the API, collected), and what it cost (tokens and USD).
+    """
+
+    __tablename__ = "screening_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    month: Mapped[str] = mapped_column(String(7), index=True)
+    ingest_run_id: Mapped[int] = mapped_column(ForeignKey("ingest_runs.id"))
+    model: Mapped[str] = mapped_column(String(64))
+    prompt_version: Mapped[str] = mapped_column(String(64))
+    prompt_sha256: Mapped[str] = mapped_column(String(64))
+    settings: Mapped[dict] = mapped_column(JsonType)
+    batch_id: Mapped[str | None] = mapped_column(String(128))
+    # submitted -> ok | failed
+    status: Mapped[str] = mapped_column(String(16), default="submitted", index=True)
+    submitted_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    requested: Mapped[int] = mapped_column(Integer, default=0)
+    succeeded: Mapped[int] = mapped_column(Integer, default=0)
+    failed: Mapped[int] = mapped_column(Integer, default=0)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_creation_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_read_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    report: Mapped[dict | None] = mapped_column(JsonType)
+    error: Mapped[str | None] = mapped_column(Text)
+
+
+class Screening(Base):
+    """The model's screening of one article in one run, stored with model and prompt version.
+
+    status "ok" means the output passed validation; anything else (invalid, errored, refused,
+    max_tokens, expired, canceled) keeps the raw output or error so it can be checked, and the
+    article is retried in the next run.
+    """
+
+    __tablename__ = "screenings"
+    __table_args__ = (UniqueConstraint("run_id", "article_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int] = mapped_column(ForeignKey("screening_runs.id"), index=True)
+    article_id: Mapped[int] = mapped_column(ForeignKey("articles.id"), index=True)
+    model: Mapped[str] = mapped_column(String(64))
+    prompt_version: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    relevant: Mapped[bool | None] = mapped_column(Boolean)
+    topics: Mapped[list] = mapped_column(JsonType, default=list)
+    design: Mapped[str | None] = mapped_column(String(64))
+    practice_changing: Mapped[int | None] = mapped_column(Integer)
+    practice_changing_reason: Mapped[str | None] = mapped_column(Text)
+    board_exam: Mapped[int | None] = mapped_column(Integer)
+    board_exam_reason: Mapped[str | None] = mapped_column(Text)
+    journal_club: Mapped[int | None] = mapped_column(Integer)
+    journal_club_reason: Mapped[str | None] = mapped_column(Text)
+    summary: Mapped[str | None] = mapped_column(Text)
+    raw_output: Mapped[str | None] = mapped_column(Text)
+    error: Mapped[str | None] = mapped_column(Text)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_creation_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_read_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    @property
+    def high_yield_score(self) -> int | None:
+        """High yield = the highest of the three dimensions (docs/SPEC.md)."""
+        scores = [self.practice_changing, self.board_exam, self.journal_club]
+        return max(scores) if all(s is not None for s in scores) else None

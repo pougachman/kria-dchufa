@@ -2,6 +2,7 @@
 # journals: topic-specific journals. Core EM and general journals are in sources.yaml.
 # suggested: true = journals proposed by Claude, awaiting Yoav's approval.
 # M1 turns each topic into a versioned PubMed query (MeSH terms + keywords + journals).
+# en: English label, used in the screening prompt (generated content is English).
 version: 1
 groups:
   clinical: קליני
@@ -10,142 +11,175 @@ groups:
 topics:
   - id: resuscitation
     he: החייאה
+    en: Resuscitation and cardiac arrest
     group: clinical
     journals: [Resuscitation, Resuscitation Plus]
   - id: critical-care
     he: טיפול נמרץ
+    en: Critical care
     group: clinical
     journals: [Intensive Care Medicine, Critical Care Medicine]
   - id: trauma
     he: טראומה
+    en: Trauma
     group: clinical
     journals: [Journal of Trauma and Acute Care Surgery, Injury]
   - id: emergency-surgery
     he: כירורגיה דחופה
+    en: Emergency general surgery
     group: clinical
     journals: [World Journal of Emergency Surgery, European Journal of Trauma and Emergency Surgery]
   - id: orthopedics
     he: אורתופדיה דחופה
+    en: Emergency orthopedics
     group: clinical
     journals: [Journal of Orthopaedic Trauma, Injury]
   - id: pediatric-em
     he: רפואה דחופה בילדים
+    en: Pediatric emergency medicine
     group: clinical
     journals: [Pediatric Emergency Care, Pediatrics]
   - id: cardiology
     he: קרדיולוגיה דחופה
+    en: Emergency cardiology
     group: clinical
     journals: [Circulation, Journal of the American College of Cardiology]
   - id: neurology-stroke
     he: נוירולוגיה ושבץ
+    en: Neurology and stroke
     group: clinical
     journals: [Stroke, Neurocritical Care]
   - id: infection-sepsis
     he: זיהומים וספסיס
+    en: Infection and sepsis
     group: clinical
     journals: [Clinical Infectious Diseases, Critical Care]
   - id: pocus
     he: POCUS
+    en: Point-of-care ultrasound
     group: clinical
     journals: [Journal of Ultrasound in Medicine, POCUS Journal, The Ultrasound Journal]
   - id: toxicology
     he: טוקסיקולוגיה
+    en: Toxicology
     group: clinical
     journals: [Clinical Toxicology, Journal of Medical Toxicology]
   - id: airway-anesthesia
     he: נתיב אוויר והרדמה
+    en: Airway and anesthesia
     group: clinical
     journals: [British Journal of Anaesthesia, Anaesthesia]
   - id: pain-procedures
     he: כאב ופרוצדורות
+    en: Pain, analgesia, sedation and procedures
     group: clinical
     journals: [Regional Anesthesia & Pain Medicine, Pain Medicine]
   - id: geriatric-em
     he: גריאטריה דחופה
+    en: Geriatric emergency medicine
     group: clinical
     journals: [Journal of the American Geriatrics Society, Academic Emergency Medicine]
   - id: obgyn
     he: גינקולוגיה ומיילדות דחופה
+    en: Obstetric and gynecologic emergencies
     group: clinical
     journals: [Obstetrics & Gynecology, American Journal of Obstetrics and Gynecology]
   - id: psychiatry
     he: פסיכיאטריה דחופה
+    en: Emergency psychiatry
     group: clinical
     journals: [General Hospital Psychiatry, Psychiatric Services]
   - id: imaging
     he: דימות דחוף
+    en: Emergency imaging
     group: clinical
     journals: [Emergency Radiology, Radiology]
   - id: internal-medicine
     he: רפואה פנימית דחופה
+    en: Emergency internal medicine
     group: clinical
     suggested: true
     journals: [JAMA Internal Medicine, Annals of Internal Medicine]
   - id: endocrinology
     he: אנדוקרינולוגיה דחופה
+    en: Endocrine and metabolic emergencies
     group: clinical
     suggested: true
     journals: [Diabetes Care, Journal of Clinical Endocrinology & Metabolism]
   - id: nephrology
     he: נפרולוגיה דחופה
+    en: Renal and electrolyte emergencies
     group: clinical
     suggested: true
     journals: [Journal of the American Society of Nephrology, Clinical Journal of the American Society of Nephrology]
   - id: hematology-oncology
     he: המטולוגיה ואונקולוגיה דחופה
+    en: Hematologic and oncologic emergencies
     group: clinical
     suggested: true
     journals: [Blood, Journal of Thrombosis and Haemostasis, Journal of Clinical Oncology]
   - id: gastroenterology
     he: גסטרואנטרולוגיה דחופה
+    en: Gastrointestinal emergencies
     group: clinical
     suggested: true
     journals: [Gastroenterology, Gut, American Journal of Gastroenterology]
   - id: ophthalmology
     he: עיניים דחופה
+    en: Ophthalmologic emergencies
     group: clinical
     suggested: true
     journals: [Ophthalmology, JAMA Ophthalmology]
   - id: ent
     he: אא"ג דחופה
+    en: Ear, nose and throat emergencies
     group: clinical
     suggested: true
     journals: ["JAMA Otolaryngology–Head & Neck Surgery", "Otolaryngology–Head and Neck Surgery"]
   - id: prehospital
     he: רפואה טרום-אשפוזית
+    en: Prehospital and EMS
     group: prehospital
     journals: [Prehospital Emergency Care]
   - id: tactical
     he: רפואה טקטית
+    en: Tactical and military medicine
     group: prehospital
     suggested: true
     journals: [Journal of Special Operations Medicine, BMJ Military Health, Military Medicine]
   - id: disaster-mci
     he: רפואת אסונות ואר"ן
+    en: Disaster medicine and mass casualty incidents
     group: prehospital
     journals: [Prehospital and Disaster Medicine, Disaster Medicine and Public Health Preparedness]
   - id: wilderness
     he: רפואת סביבה ושטח
+    en: Wilderness and environmental medicine
     group: prehospital
     journals: [Wilderness & Environmental Medicine]
   - id: medical-education
     he: חינוך רפואי
+    en: Medical education
     group: education
     journals: [AEM Education and Training, Academic Medicine]
   - id: simulation
     he: סימולציה
+    en: Simulation
     group: education
     journals: [Simulation in Healthcare, Journal of Education and Teaching in Emergency Medicine]
   - id: quality-safety
     he: איכות ובטיחות
+    en: Quality and patient safety
     group: education
     journals: [BMJ Quality & Safety, BMJ Open Quality]
   - id: operations
     he: תפעול וניהול
+    en: ED operations and management
     group: education
     journals: [Health Affairs, Journal of Healthcare Management]
   - id: innovation
     he: חדשנות ברפואה דחופה
+    en: Innovation, digital health and AI
     group: education
     suggested: true
     journals: [NEJM AI, The Lancet Digital Health, npj Digital Medicine]

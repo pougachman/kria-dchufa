@@ -15,5 +15,9 @@ class Settings(BaseSettings):
     ncbi_email: str | None = None
     ncbi_tool: str = "kria-dchufa"
 
+    # M2 screening. Haiku through the Message Batches API (50% price, results within 24 hours).
+    screening_model: str = "claude-haiku-5-5"
+    screening_prompt: str = "screening.v1"
+
 
 settings = Settings()

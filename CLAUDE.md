@@ -41,6 +41,9 @@ alembic upgrade head   # apply migrations (uses DATABASE_URL)
 uvicorn kria.web.main:app --reload
 python -m kria.pipeline.ingest 2026-10   # ingest one month from PubMed, print count report
 python -m kria.pipeline.journals         # re-map journal names after editing data/*.yaml
+python -m kria.pipeline.screen run 2026-10 --limit 20  # screen with Claude (paid, needs the key)
+python -m kria.pipeline.screen report 2026-10          # counts, cost, time, ranked shortlist
+python -m kria.pipeline.monthly          # daily job: next missing step for the previous month
 ```
 
 Tests never call the network; live checks are run by hand. A local Postgres 16 is available at
@@ -49,12 +52,12 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
 ## Layout
 
 - `kria/web/` FastAPI app and RTL templates
-- `kria/pipeline/` monthly ingest, screen, rank, digest
+- `kria/pipeline/` monthly ingest, screen (Claude Batches), rank, monthly job, digest
 - `kria/appraisal/` SGEM-style appraisal engine; `calc.py` holds the statistics
 - `kria/questions/` MCQ and discussion questions
 - `kria/db/` models; `migrations/` Alembic
 - `data/` taxonomy (33 topics), sources, `journals.yaml` (generated NLM mapping, with
-  hand-checked `overrides`), `filters.yaml` (versioned code filter)
+  hand-checked `overrides`), `filters.yaml` (versioned code filter), `pricing.yaml` (API prices)
 - `prompts/` versioned prompts; `eval/` gold standard and SGEM benchmark
 
 ## Milestone status
@@ -63,8 +66,12 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       (home page verified 2026-11-12). Yoav can open /healthz to confirm database_kind is
       postgresql; if it says sqlite, DATABASE_URL in Railway needs fixing
 - [ ] M1 PubMed ingestion: code done; October 2026 run twice on local Postgres with identical
-      results (3,451 records, 2,398 kept). Needs a run on Railway after the M0 deploy
-- [ ] M2 screening and scoring
+      results (3,451 records, 2,398 kept). Needs a run on Railway: the daily job
+      (`kria.pipeline.monthly`, Railway cron service, see README) does it on its first run
+- [ ] M2 screening and scoring: code done and tested offline (2026-11-12): Haiku 5.5 via
+      Message Batches, prompt `screening.v1`, validated JSON per article, cost/time per run,
+      ranked shortlist, Hebrew /status page. Needs ANTHROPIC_API_KEY on Railway and the daily
+      job's first real run (October 2026, estimated under 1 USD); then check /status
 - [ ] M3 approval screen and digest
 - [ ] M4 appraisal engine
 - [ ] M5 programs and roles
