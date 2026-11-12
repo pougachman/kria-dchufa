@@ -71,7 +71,9 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
 - [x] M2 screening and scoring (2026-11-12): Haiku 5.5 via Message Batches, prompt
       `screening.v1`. First real run on Railway, October 2026: 2,398 of 2,398 screened,
       949 relevant, 291 scored 4-5, 14.3 minutes, 0.30 USD. Daily job `monthly-job` on Railway
-      (cron 05:00 UTC); progress and failures on /status. Next: sensitivity check (gate 1)
+      (cron 05:00 UTC); progress and failures on /status. Next: sensitivity check (gate 1).
+      Prompt `screening.v2` (adds ed_relevance) is the default from November 2026; a month
+      keeps the prompt version it was first screened with (`screen.month_version`)
 - [ ] M3 approval screen and digest: code done (2026-11-12): /editor with password, ranked
       shortlist with one-click approve/reject, editor minutes, digest email through Resend.
       Needs EDITOR_PASSWORD, RESEND_API_KEY and DIGEST_RECIPIENTS on Railway, then October's

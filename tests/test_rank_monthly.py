@@ -15,7 +15,9 @@ from tests.test_screen import (  # noqa: F401
 )
 
 
-def pair(pmid, pc, be, jc, design="rct", journal="Ann Emerg Med", relevant=True, topics=None):
+def pair(
+    pmid, pc, be, jc, design="rct", journal="Ann Emerg Med", relevant=True, topics=None, ed=None
+):
     a = Article(pmid=str(pmid), title=f"Article {pmid}", journal_ta=journal, flags=[])
     s = Screening(
         status="ok",
@@ -25,6 +27,7 @@ def pair(pmid, pc, be, jc, design="rct", journal="Ann Emerg Med", relevant=True,
         practice_changing=pc,
         board_exam=be,
         journal_club=jc,
+        ed_relevance=ed,
     )
     return a, s
 
@@ -112,7 +115,7 @@ def test_status_page_shows_counts_in_hebrew_without_article_content(ingested):  
     assert r.status_code == 200
     assert 'dir="rtl"' in r.text and "מצב הצנרת החודשית" in r.text
     assert "2026-10" in r.text and "הושלמה" in r.text
-    assert "claude-haiku-5-5 · screening.v1" in r.text
+    assert "claude-haiku-5-5 · screening.v2" in r.text
     assert "Fluids in sepsis" not in r.text  # no article titles on this page
     assert good_output() not in r.text
 
@@ -154,3 +157,16 @@ def test_monthly_main_reports_failure_with_exit_code(monkeypatch, capsys):
     assert monthly.main(["2026-10"]) == 1
     out = capsys.readouterr()
     assert "database unreachable" in out.err and "monthly job failed" in out.out
+
+
+def test_ed_studies_rank_above_other_specialties_with_the_same_score():
+    pairs = [
+        pair(1, 5, 1, 1, ed=2, design="meta_analysis"),  # ICU meta-analysis, far from the ED
+        pair(2, 5, 1, 1, ed=5, design="retrospective_cohort"),  # ED cohort
+        pair(3, 4, 1, 1, ed=5),  # lower main score still ranks lower
+        pair(4, 5, 1, 1, ed=4),
+    ]
+    assert order(pairs) == ["2", "4", "1", "3"]
+    item = rank.shortlist(pairs, tiers=TIERS)[0]
+    assert item["ed"] == {"score": 5, "reason": None}
+    assert rank.shortlist([pair(9, 3, 3, 3)], tiers=TIERS)[0]["ed"] is None  # v1 screening

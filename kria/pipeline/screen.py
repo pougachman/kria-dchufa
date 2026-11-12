@@ -40,7 +40,16 @@ ROOT = Path(__file__).resolve().parents[2]
 PROMPTS = ROOT / "prompts"
 DATA = ROOT / "data"
 
-SCHEMA_VERSION = 1
+# Output schema per prompt version. v2 adds ed_relevance (connection to ED work, 1-5).
+PROMPT_SCHEMA = {"screening.v1": 1, "screening.v2": 2}
+LATEST_SCHEMA = 2
+ED = "ed_relevance"
+
+
+def schema_version(prompt_version: str) -> int:
+    return PROMPT_SCHEMA.get(prompt_version, LATEST_SCHEMA)
+
+
 MAX_TOKENS = 4096  # thinking counts toward this; screening answers are ~300 tokens
 EFFORT = "low"
 MAX_ATTEMPTS = 3
@@ -100,7 +109,7 @@ def render_prompt(version: str, taxonomy: dict, prompts_dir: Path | None = None)
     return template.replace("{{topics}}", "\n".join(lines).rstrip())
 
 
-def output_schema(topic_ids: list[str]) -> dict:
+def output_schema(topic_ids: list[str], version: int = LATEST_SCHEMA) -> dict:
     """JSON schema for structured outputs. Score ranges are enums (no numeric constraints)."""
 
     def score() -> dict:
@@ -111,7 +120,7 @@ def output_schema(topic_ids: list[str]) -> dict:
         "topics": {"type": "array", "items": {"type": "string", "enum": topic_ids}},
         "design": {"type": "string", "enum": DESIGNS},
     }
-    for s in SCORES:
+    for s in SCORES + ((ED,) if version >= 2 else ()):
         props[s] = score()
         props[f"{s}_reason"] = {"type": "string"}
     props["summary"] = {"type": "string"}
@@ -240,8 +249,11 @@ def build_request(article: Article, text: str, system: str, schema: dict, model:
 # ---- validation and cost -----------------------------------------------------------------------
 
 
-def validate_output(text: str | None, topic_ids: set[str]) -> tuple[dict | None, list[str]]:
+def validate_output(
+    text: str | None, topic_ids: set[str], version: int = LATEST_SCHEMA
+) -> tuple[dict | None, list[str]]:
     """Check the model's JSON in code. Returns (clean values, problems)."""
+    scores = SCORES + ((ED,) if version >= 2 else ())
     if not text:
         return None, ["empty output"]
     try:
@@ -265,7 +277,7 @@ def validate_output(text: str | None, topic_ids: set[str]) -> tuple[dict | None,
         problems.append("no topic")
     if data.get("design") not in DESIGNS:
         problems.append(f"unknown design {data.get('design')!r}")
-    for s in SCORES:
+    for s in scores:
         v = data.get(s)
         if isinstance(v, bool) or not isinstance(v, int) or not 1 <= v <= 5:
             problems.append(f"{s} is not 1-5")
@@ -282,7 +294,7 @@ def validate_output(text: str | None, topic_ids: set[str]) -> tuple[dict | None,
         "design": data["design"],
         "summary": data["summary"].strip(),
     }
-    for s in SCORES:
+    for s in scores:
         clean[s] = data[s]
         clean[f"{s}_reason"] = data[f"{s}_reason"].strip()
     return clean, []
@@ -313,6 +325,26 @@ def pending_run(session: Session, month: str | None = None) -> ScreeningRun | No
     return session.scalar(q.order_by(ScreeningRun.id.desc()))
 
 
+def month_version(session: Session, month: str) -> tuple[str, str]:
+    """(model, prompt version) for a month.
+
+    A month keeps the model and prompt it was first screened with, so a new prompt version
+    applies from the next month on and never re-screens a month by itself. Re-screening a month
+    with another version is done by hand (`screen submit MONTH --prompt screening.vN`).
+    """
+    run = session.scalar(
+        select(ScreeningRun)
+        .where(
+            ScreeningRun.month == month,
+            ScreeningRun.status.in_(("ok", "submitted", "submitting")),
+        )
+        .order_by(ScreeningRun.id.desc())
+    )
+    if run is not None:
+        return run.model, run.prompt_version
+    return settings.screening_model, settings.screening_prompt
+
+
 def submit_month(
     session: Session,
     batches,
@@ -322,8 +354,9 @@ def submit_month(
     prompt_version: str | None = None,
 ) -> ScreeningRun | None:
     """Submit one batch for the month's unscreened articles. None if nothing is left to screen."""
-    model = model or settings.screening_model
-    prompt_version = prompt_version or settings.screening_prompt
+    default_model, default_prompt = month_version(session, month)
+    model = model or default_model
+    prompt_version = prompt_version or default_prompt
     ingest = latest_ingest_run(session, month)
     if ingest is None:
         raise RuntimeError(f"no successful ingest run for {month}; run kria.pipeline.ingest first")
@@ -333,7 +366,7 @@ def submit_month(
     taxonomy = load_taxonomy()
     system = render_prompt(prompt_version, taxonomy)
     topic_ids = [t["id"] for t in taxonomy["topics"]]
-    schema = output_schema(topic_ids)
+    schema = output_schema(topic_ids, schema_version(prompt_version))
     todo = articles_to_screen(session, kept_articles(session, ingest), model, prompt_version)
     if limit is not None:
         todo = todo[:limit]
@@ -356,7 +389,7 @@ def submit_month(
         settings={
             "max_tokens": MAX_TOKENS,
             "effort": EFFORT,
-            "schema_version": SCHEMA_VERSION,
+            "schema_version": schema_version(prompt_version),
             "schema_sha256": sha256(json.dumps(schema, sort_keys=True)),
             "taxonomy_version": taxonomy["version"],
             "batch": True,
@@ -454,7 +487,9 @@ def collect(session: Session, batches, run: ScreeningRun) -> bool:
             elif res["stop_reason"] == "max_tokens":
                 row.status = "max_tokens"
             else:
-                clean, problems = validate_output(res["text"], topic_ids)
+                clean, problems = validate_output(
+                    res["text"], topic_ids, schema_version(run.prompt_version)
+                )
                 if clean is None:
                     row.status, row.error = "invalid", "; ".join(problems)
                 else:
@@ -500,8 +535,9 @@ def latest_screenings(
     session: Session, month: str, model: str | None = None, prompt_version: str | None = None
 ) -> list[tuple[Article, Screening]]:
     """The newest valid screening of each article kept in the month's latest ingest run."""
-    model = model or settings.screening_model
-    prompt_version = prompt_version or settings.screening_prompt
+    if model is None or prompt_version is None:
+        default_model, default_prompt = month_version(session, month)
+        model, prompt_version = model or default_model, prompt_version or default_prompt
     ingest = latest_ingest_run(session, month)
     if ingest is None:
         return []
@@ -552,7 +588,9 @@ def build_report(session: Session, run: ScreeningRun, statuses: Counter, unknown
             "relevant": len(relevant),
             "high_yield_4_plus": sum(1 for s in relevant if s.high_yield_score >= 4),
             "score_distribution": {
-                s: dict(sorted(Counter(getattr(x, s) for x in relevant).items())) for s in SCORES
+                s: dict(sorted(Counter(getattr(x, s) for x in relevant).items()))
+                for s in SCORES + (ED,)
+                if any(getattr(x, s) is not None for x in relevant)
             },
             "designs": dict(Counter(s.design for s in relevant).most_common()),
             "topics": dict(topics.most_common()),
@@ -602,6 +640,11 @@ def main(argv: list[str] | None = None) -> int:
         p = sub.add_parser(name)
         p.add_argument("month")
         p.add_argument("--limit", type=int, help="screen at most this many articles")
+        p.add_argument(
+            "--prompt",
+            help="prompt version, for example screening.v2 (default: the "
+            "month's own version, or the current default for a new month)",
+        )
     p = sub.add_parser("collect")
     p.add_argument("run_id", nargs="?", type=int)
     p = sub.add_parser("report")
@@ -634,7 +677,9 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             print(format_report(run.report))
             return 0
-        run = submit_month(session, batches, args.month, limit=args.limit)
+        run = submit_month(
+            session, batches, args.month, limit=args.limit, prompt_version=args.prompt
+        )
         if run is None:
             print(f"Nothing left to screen for {args.month}.")
             return 0

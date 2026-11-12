@@ -55,6 +55,11 @@ Defaults are in effect until he decides; record each answer here and in the live
 - Articles without an abstract (M2 finding): 854 of October's 2,398 kept records (36%) had
   no abstract yet and were screened on title, journal and type only. Open: whether to re-check
   them in PubMed the next month and re-screen those that gained an abstract.
+- ED context (Yoav, 2026-11-12, after reviewing October): articles from other specialties
+  (critical care, cardiology...) stay in the list but rank below ED studies with the same
+  score. Prompt `screening.v2` adds a fourth score, `ed_relevance` (connection to ED work,
+  1-5), used in ranking right after the high-yield score. v2 applies from November 2026;
+  October stays on v1 (each month keeps the version it was first screened with).
 - Score calibration (M2 finding): 291 of 949 relevant October articles scored 4-5, more than
   the prompt intends ("reserve 4 and 5"). To review against the gold standard and in the M3
   approval screen before changing the prompt (any change becomes `screening.v2`).

@@ -18,7 +18,8 @@ class Settings(BaseSettings):
 
     # M2 screening. Haiku through the Message Batches API (50% price, results within 24 hours).
     screening_model: str = "claude-haiku-5-5"
-    screening_prompt: str = "screening.v1"
+    # A month keeps the version it was first screened with (screen.month_version).
+    screening_prompt: str = "screening.v2"
 
     # M3 approval screen and digest. One editor password until M5 adds users and roles.
     editor_password: str | None = None
