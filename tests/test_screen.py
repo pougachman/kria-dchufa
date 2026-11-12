@@ -413,3 +413,27 @@ def test_result_to_dict_for_a_refusal():
     )
     out = result_to_dict(item)
     assert out["stop_reason"] == "refusal" and out["text"] is None
+
+
+def test_a_rejected_batch_is_recorded_with_the_reason(ingested):
+    class Rejecting(FakeBatches):
+        def create(self, requests):
+            raise RuntimeError("400 invalid_request_error: bad schema")
+
+    with pytest.raises(RuntimeError):
+        screen.submit_month(ingested, Rejecting(), "2026-10")
+    run = ingested.scalar(select(ScreeningRun))
+    assert run.status == "failed" and "bad schema" in run.error and run.batch_id is None
+    # The next attempt is not blocked by the failed one.
+    assert screen.submit_month(ingested, FakeBatches(), "2026-10").status == "submitted"
+
+
+def test_a_run_stopped_while_submitting_is_marked_interrupted(ingested):
+    fake = FakeBatches()
+    run = screen.submit_month(ingested, fake, "2026-10")
+    run.status, run.batch_id = "submitting", None  # as if the process was killed mid-call
+    ingested.commit()
+    again = screen.submit_month(ingested, fake, "2026-10")
+    assert ingested.get(ScreeningRun, run.id).status == "failed"
+    assert "interrupted" in ingested.get(ScreeningRun, run.id).error
+    assert again.status == "submitted" and again.requested == 3

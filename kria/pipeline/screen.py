@@ -329,6 +329,7 @@ def submit_month(
         raise RuntimeError(f"no successful ingest run for {month}; run kria.pipeline.ingest first")
     if pending_run(session, month):
         raise RuntimeError(f"a screening batch for {month} is still running; collect it first")
+    mark_interrupted(session, month)
     taxonomy = load_taxonomy()
     system = render_prompt(prompt_version, taxonomy)
     topic_ids = [t["id"] for t in taxonomy["topics"]]
@@ -364,10 +365,42 @@ def submit_month(
         submitted_at=dt.datetime.now(dt.UTC),
         requested=len(requests),
     )
-    run.batch_id = batches.create(requests)
+    # Record the attempt before calling the API, so a failure (or a process that is stopped) is
+    # visible on /status instead of leaving no trace.
+    run.status = "submitting"
     session.add(run)
     session.commit()
+    log(f"submitting {len(requests)} articles from {month} to {model} (run {run.id})")
+    try:
+        run.batch_id = batches.create(requests)
+    except Exception as exc:
+        run.status, run.error = "failed", f"batch not created: {exc!r}"[:2000]
+        run.finished_at = dt.datetime.now(dt.UTC)
+        session.commit()
+        raise
+    run.status = "submitted"
+    session.commit()
+    log(f"batch {run.batch_id} created")
     return run
+
+
+def log(message: str) -> None:
+    """Progress line for the job logs (Railway shows them per run)."""
+    print(f"[{dt.datetime.now(dt.UTC):%H:%M:%S}] {message}", flush=True)
+
+
+def mark_interrupted(session: Session, month: str) -> int:
+    """Runs left in "submitting" were stopped before the batch was created: mark them failed."""
+    stale = session.scalars(
+        select(ScreeningRun).where(ScreeningRun.month == month, ScreeningRun.status == "submitting")
+    ).all()
+    for run in stale:
+        run.status = "failed"
+        run.error = "interrupted: the process stopped before the batch was created"
+        run.finished_at = dt.datetime.now(dt.UTC)
+    if stale:
+        session.commit()
+    return len(stale)
 
 
 def collect(session: Session, batches, run: ScreeningRun) -> bool:
@@ -380,7 +413,9 @@ def collect(session: Session, batches, run: ScreeningRun) -> bool:
         return True
     state = batches.status(run.batch_id)
     if state["status"] != "ended":
+        log(f"batch {run.batch_id} is {state['status']}: {state['counts']}")
         return False
+    log(f"batch {run.batch_id} ended; storing results")
     pricing = load_pricing()
     topic_ids = {t["id"] for t in load_taxonomy()["topics"]}
     by_cid = {
