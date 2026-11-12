@@ -40,3 +40,9 @@ def test_pasted_keys_are_stripped_and_format_checked():
     assert not anthropic_key_looks_valid(None)
     assert not anthropic_key_looks_valid("sk-ant-api03-short")
     assert "anthropic_api_key_format_ok" in client.get("/healthz").json()
+
+
+def test_stylesheets_use_relative_links():
+    """Behind Railway's HTTPS proxy an absolute http:// link would be blocked as mixed content."""
+    assert 'href="/static/style.css"' in client.get("/").text
+    assert 'href="/static/editor.css"' in client.get("/editor/login").text
