@@ -28,7 +28,7 @@ product decision is missing, ask Yoav instead of guessing, and record the answer
 
 ## Stack
 
-Python 3.12, FastAPI, Jinja templates (Tailwind from M3), SQLAlchemy 2 + Alembic, Postgres
+Python 3.12, FastAPI, Jinja templates (Tailwind from M3, compiled to static/editor.css), SQLAlchemy 2 + Alembic, Postgres
 on Railway, Claude API (Haiku for screening via Message Batches, Sonnet/Opus for appraisal).
 
 ## Commands
@@ -44,6 +44,7 @@ python -m kria.pipeline.journals         # re-map journal names after editing da
 python -m kria.pipeline.screen run 2026-10 --limit 20  # screen with Claude (paid, needs the key)
 python -m kria.pipeline.screen report 2026-10          # counts, cost, time, ranked shortlist
 python -m kria.pipeline.monthly          # daily job: next missing step for the previous month
+npx tailwindcss@3.4.16 -c tailwind.config.js -i kria/web/static/editor.src.css -o kria/web/static/editor.css --minify
 ```
 
 Tests never call the network; live checks are run by hand. A local Postgres 16 is available at
@@ -71,7 +72,10 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       `screening.v1`. First real run on Railway, October 2026: 2,398 of 2,398 screened,
       949 relevant, 291 scored 4-5, 14.3 minutes, 0.30 USD. Daily job `monthly-job` on Railway
       (cron 05:00 UTC); progress and failures on /status. Next: sensitivity check (gate 1)
-- [ ] M3 approval screen and digest
+- [ ] M3 approval screen and digest: code done (2026-11-12): /editor with password, ranked
+      shortlist with one-click approve/reject, editor minutes, digest email through Resend.
+      Needs EDITOR_PASSWORD, RESEND_API_KEY and DIGEST_RECIPIENTS on Railway, then October's
+      digest approved and emailed
 - [ ] M4 appraisal engine
 - [ ] M5 programs and roles
 - [ ] M6 reading lists and questions

@@ -27,6 +27,9 @@ Railway sets `DATABASE_URL`, and add `ANTHROPIC_API_KEY`, `NCBI_API_KEY` and `NC
 service variables. Health check: `/healthz`. Pipeline progress (Hebrew, counts and costs only):
 `/status`.
 
+Editor screen and digest (M3): on the site service add `EDITOR_PASSWORD`, `RESEND_API_KEY`
+and `DIGEST_RECIPIENTS` (comma-separated). The editor works at `/editor`.
+
 Monthly pipeline: add a second service from the same repository, with
 - Custom Start Command: `sh -c "alembic upgrade head && python -m kria.pipeline.monthly"`
 - Cron Schedule: `0 5 * * *` (every day at 05:00 UTC)

@@ -1,0 +1,39 @@
+{% extends "editor_base.html" %}
+{% block title %}דייג'סט {{ month_he }} · מסך העורך{% endblock %}
+{% block content %}
+<a href="/editor/{{ month }}" class="text-sm text-slate-500 hover:text-slate-800">→ חזרה לרשימת המאמרים</a>
+<h1 class="text-2xl font-bold mt-1 mb-4">הדייג'סט של {{ month_he }}</h1>
+
+{% if sent %}<p class="rounded-lg bg-emerald-100 text-emerald-900 p-4 mb-4">הדייג'סט נשלח.</p>{% endif %}
+{% if error %}<p class="rounded-lg bg-red-100 text-red-900 p-4 mb-4">השליחה נכשלה: <span class="en">{{ error }}</span></p>{% endif %}
+
+{% if not email_html %}
+  <p class="bg-white rounded-xl p-6">עדיין לא אישרת מאמרים לחודש הזה.</p>
+{% else %}
+  <div class="bg-white rounded-xl shadow-sm p-5 mb-5">
+    <p>{{ count }} מאמרים מאושרים. כך ייראה המייל:</p>
+    {% if mail_ready %}
+      <p class="text-sm text-slate-600 mt-2">יישלח אל: <span class="en">{{ recipients | join(", ") }}</span></p>
+      <form method="post" action="/editor/{{ month }}/digest/send" class="mt-4"
+            onsubmit="return confirm('לשלוח את הדייג\'סט עכשיו?');">
+        <button class="rounded-lg bg-blue-700 text-white px-5 py-2 font-semibold hover:bg-blue-800">
+          {% if history %}שליחה נוספת{% else %}אישור ושליחה{% endif %}
+        </button>
+      </form>
+    {% else %}
+      <p class="text-amber-800 mt-2">שליחת מייל עוד לא הוגדרה: חסרים ב-Railway המשתנים <span class="en font-mono">RESEND_API_KEY</span> ו-<span class="en font-mono">DIGEST_RECIPIENTS</span>.</p>
+    {% endif %}
+  </div>
+  <iframe srcdoc="{{ email_html }}" title="תצוגה מקדימה של המייל"
+          class="w-full bg-white rounded-xl shadow-sm" style="height: 70vh"></iframe>
+{% endif %}
+
+{% if history %}
+<h2 class="text-lg font-semibold mt-8 mb-2">שליחות קודמות</h2>
+<ul class="bg-white rounded-xl shadow-sm divide-y">
+  {% for d in history %}
+  <li class="p-4 text-sm">{{ d.sent_at.strftime("%d/%m/%Y %H:%M") }} UTC · {{ d.article_ids | length }} מאמרים · זמן עורך {{ d.editor_minutes }} דקות</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

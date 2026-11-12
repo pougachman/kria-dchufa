@@ -1,0 +1,74 @@
+{% extends "editor_base.html" %}
+{% block title %}{{ month_he }} · מסך העורך{% endblock %}
+{% block header_actions %}
+<div class="flex items-center gap-3 text-sm">
+  <span class="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">אושרו {{ approved }}</span>
+  <span class="rounded-full bg-slate-200 text-slate-700 px-3 py-1">נדחו {{ rejected }}</span>
+  <a href="/editor/{{ month }}/digest" class="rounded-lg bg-blue-700 text-white px-3 py-1.5 font-semibold hover:bg-blue-800">לדייג'סט ←</a>
+</div>
+{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="/editor" class="text-sm text-slate-500 hover:text-slate-800">→ כל החודשים</a>
+  <h1 class="text-2xl font-bold mt-1">{{ month_he }}</h1>
+  <p class="text-slate-600 mt-1">
+    {{ total }} מאמרים רלוונטיים, מדורגים לפי הציון הגבוה מבין השלושה. מוצגים {{ show }} הראשונים,
+    {{ undecided_shown }} מהם עוד בלי החלטה. זמן עבודה החודש: {{ minutes }} דקות.
+  </p>
+  <p class="text-slate-500 text-sm mt-1">רק מאמרים שתאשר ייכנסו לדייג'סט. הסיכומים והנימוקים נכתבו על ידי המודל ולא נבדקו.</p>
+</div>
+
+<ol class="space-y-4">
+{% for item in items %}
+  {% set state = item.decision %}
+  <li id="a{{ item.article_id }}"
+      class="rounded-xl shadow-sm p-5 {% if state == 'approved' %}bg-emerald-50 ring-2 ring-emerald-500{% elif state == 'rejected' %}bg-slate-50 opacity-60{% else %}bg-white{% endif %}">
+    <div class="flex flex-wrap items-center gap-2 text-sm mb-2">
+      <span class="font-bold text-slate-500">#{{ item.rank }}</span>
+      <span class="rounded-full bg-blue-100 text-blue-800 px-2.5 py-0.5 font-semibold">ציון {{ item.score }}</span>
+      <span class="rounded-full bg-slate-100 px-2.5 py-0.5">{{ designs.get(item.design, item.design) }}</span>
+      {% for t in item.topics %}<span class="rounded-full bg-violet-100 text-violet-800 px-2.5 py-0.5">{{ topics.get(t, t) }}</span>{% endfor %}
+      {% if item.no_abstract %}<span class="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5">אין תקציר: דורג לפי הכותרת</span>{% endif %}
+    </div>
+
+    <div class="en">
+      <a href="https://pubmed.ncbi.nlm.nih.gov/{{ item.pmid }}/" target="_blank" rel="noopener"
+         class="text-lg font-semibold text-slate-900 hover:text-blue-700 hover:underline">{{ item.title }}</a>
+      <p class="text-sm text-slate-500 mt-0.5">{{ item.journal }} · PMID {{ item.pmid }}{% if item.doi %} · <a class="hover:underline" href="https://doi.org/{{ item.doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}</p>
+      <p class="mt-2 leading-relaxed">{{ item.summary }}</p>
+    </div>
+
+    <dl class="mt-3 grid gap-1.5 text-sm">
+      {% for key, label in scores.items() %}
+      <div class="flex gap-2 items-baseline">
+        <dt class="shrink-0 w-28 text-slate-500">{{ label }} <span class="font-semibold text-slate-800">{{ item.scores[key] }}</span></dt>
+        <dd class="en text-slate-700">{{ item.reasons[key] }}</dd>
+      </div>
+      {% endfor %}
+    </dl>
+
+    <form method="post" action="/editor/{{ month }}/decide" class="mt-4 flex flex-wrap gap-2">
+      <input type="hidden" name="article_id" value="{{ item.article_id }}">
+      <input type="hidden" name="show" value="{{ show }}">
+      {% if state == 'approved' %}
+        <span class="rounded-lg bg-emerald-600 text-white px-4 py-2 font-semibold">✓ אושר</span>
+        <button name="decision" value="clear" class="rounded-lg border border-slate-300 px-4 py-2 hover:bg-white">ביטול</button>
+      {% elif state == 'rejected' %}
+        <span class="rounded-lg bg-slate-500 text-white px-4 py-2 font-semibold">נדחה</span>
+        <button name="decision" value="clear" class="rounded-lg border border-slate-300 px-4 py-2 hover:bg-white">ביטול</button>
+      {% else %}
+        <button name="decision" value="approved" class="rounded-lg bg-emerald-600 text-white px-5 py-2 font-semibold hover:bg-emerald-700">אישור</button>
+        <button name="decision" value="rejected" class="rounded-lg border border-slate-300 bg-white px-5 py-2 hover:bg-slate-100">דחייה</button>
+      {% endif %}
+    </form>
+  </li>
+{% endfor %}
+</ol>
+
+{% if show < total %}
+<div class="text-center mt-6">
+  <a href="/editor/{{ month }}?show={{ show + 20 }}#a{{ items[-1].article_id }}"
+     class="inline-block rounded-lg border border-slate-300 bg-white px-5 py-2 hover:bg-slate-50">הצג עוד 20 מאמרים</a>
+</div>
+{% endif %}
+{% endblock %}
