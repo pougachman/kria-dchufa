@@ -20,7 +20,29 @@ class Settings(BaseSettings):
     screening_model: str = "claude-haiku-5-5"
     screening_prompt: str = "screening.v1"
 
-    @field_validator("anthropic_api_key", "ncbi_api_key", "ncbi_email", mode="before")
+    # M3 approval screen and digest. One editor password until M5 adds users and roles.
+    editor_password: str | None = None
+    # Email through Resend. onboarding@resend.dev can send only to the Resend account's own
+    # address, which is enough for the pilot (the digest goes to Yoav only). Sending to others
+    # needs a verified domain and a DIGEST_FROM on it.
+    resend_api_key: str | None = None
+    digest_from: str = "Kria Dchufa <onboarding@resend.dev>"
+    digest_recipients: str | None = None  # comma-separated
+    public_url: str = "https://kria-dchufa-production.up.railway.app"
+
+    @property
+    def recipients(self) -> list[str]:
+        return [r.strip() for r in (self.digest_recipients or "").split(",") if r.strip()]
+
+    @field_validator(
+        "anthropic_api_key",
+        "ncbi_api_key",
+        "ncbi_email",
+        "editor_password",
+        "resend_api_key",
+        "digest_recipients",
+        mode="before",
+    )
     @classmethod
     def strip_pasted_whitespace(cls, value):
         """Keys pasted into a dashboard often carry a stray space or line break."""

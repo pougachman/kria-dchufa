@@ -8,7 +8,9 @@ Status (2026-11-12): M0 deployed on Railway (https://kria-dchufa-production.up.r
 M1 and M2 done: the daily job (`monthly-job`, a Railway cron service at 05:00 UTC) ingested
 October 2026 on Railway (3,451 records, 2,398 kept, identical to the local runs) and screened
 all 2,398 with Haiku 5.5 in one batch: 949 relevant, 291 scored 4-5, 14.3 minutes, 0.30 USD.
-Next: the M2 sensitivity check (needs the gold standard), then M3.
+M3 code done (2026-11-12): editor screen at /editor, digest email through Resend. Done when
+October's digest is approved and emailed from Railway. Then: the M2 sensitivity check (needs
+the gold standard).
 M4 does not depend on the pipeline and can be built in parallel with M1-M3.
 
 | Milestone | What is built | Done when | Depends on |
@@ -34,7 +36,12 @@ Defaults are in effect until he decides; record each answer here and in the live
 - Code filter age limit: 6 months (default, `data/filters.yaml`).
 - Journals marked "suggested" in `data/taxonomy.yaml` and `data/sources.yaml`: included, not
   yet approved.
-- Size of the national digest per month: open.
+- Size of the national digest per month: no fixed number; the digest is exactly what the
+  editor approves (Yoav, 2026-11-12). Revisit after a few months.
+- Editor access until M5: one editor password, `EDITOR_PASSWORD` (Yoav, 2026-11-12).
+- Digest email: through Resend (Yoav, 2026-11-12). Pilot recipients: Yoav only. Until a domain
+  is verified in Resend, the sender is onboarding@resend.dev, which can send only to the
+  Resend account's own address.
 - Gold standard: 2-3 program directors to label ~200 articles; SGEM benchmark list of ~10
   articles: not started. Also open: which month(s) to sample from, and how (a plain random
   sample of 200 would contain only a few high-yield articles), and the sensitivity threshold
@@ -82,3 +89,21 @@ Defaults are in effect until he decides; record each answer here and in the live
 Screening 3,000 articles/month at 1,500 input + 300 output tokens each on Haiku 5.5 batch
 (0.05 / 0.25 USD per million tokens): about 0.45 USD. Ten appraisals at 100k input + 15k output
 tokens each: about 3.5 USD on Sonnet 5.5 or 7 USD on Opus 5.5. Hosting and email not included.
+
+## M3 as built (2026-11-12)
+
+- /editor (password `EDITOR_PASSWORD`, signed cookie for 30 days): months with a finished
+  screening run; per month, the ranked relevant articles (40 at a time, "show 20 more"), each
+  with rank, score, design, topics, a no-abstract warning, PubMed and DOI links, the English
+  summary and the three scores with reasons, and one-click approve / reject / undo.
+- Decisions are stored per month and article with the rank and screening shown at the time.
+- Editor time: every page view and decision is logged; minutes = the sum of the gaps between
+  actions, each gap capped at 5 minutes. Shown on the screens and stored with each digest.
+- Digest: exactly the approved articles, grouped by first topic in taxonomy order, ranked
+  within; Hebrew RTL frame, English content; title linked to PubMed, design, summary and the
+  reason for the top score. Preview on /editor/<month>/digest, then "approve and send". Every
+  sending is stored (articles, subject, HTML, text, recipients, Resend id, editor minutes).
+- Settings (Railway variables on the site service): `EDITOR_PASSWORD`, `RESEND_API_KEY`,
+  `DIGEST_RECIPIENTS` (comma-separated), optional `DIGEST_FROM`.
+- Styles: Tailwind 3.4.16 compiled to `kria/web/static/editor.css` (no runtime CDN, which
+  hospital networks may block); command in `tailwind.config.js`.

@@ -2,7 +2,8 @@
 
 M1 adds the ingestion tables: topics, versioned queries, articles, ingest runs, and which query
 found which article in which run. M2 adds screening runs and one screening result per article per
-run. Later milestones add the rest of the model in docs/SPEC.md.
+run. M3 adds the national editor's decisions, a log of editor actions (to measure editor time),
+and sent digests. Later milestones add the rest of the model in docs/SPEC.md.
 """
 
 from __future__ import annotations
@@ -198,3 +199,47 @@ class Screening(Base):
         """High yield = the highest of the three dimensions (docs/SPEC.md)."""
         scores = [self.practice_changing, self.board_exam, self.journal_club]
         return max(scores) if all(s is not None for s in scores) else None
+
+
+class EditorDecision(Base):
+    """The national editor's approve/reject decision on one article for one month's digest."""
+
+    __tablename__ = "editor_decisions"
+    __table_args__ = (UniqueConstraint("month", "article_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    month: Mapped[str] = mapped_column(String(7), index=True)
+    article_id: Mapped[int] = mapped_column(ForeignKey("articles.id"))
+    screening_id: Mapped[int | None] = mapped_column(ForeignKey("screenings.id"))
+    decision: Mapped[str] = mapped_column(String(16))  # approved | rejected
+    rank: Mapped[int | None] = mapped_column(Integer)  # rank shown when decided
+    decided_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class EditorEvent(Base):
+    """One editor action (page view, decision, digest sent). Used to measure editor minutes."""
+
+    __tablename__ = "editor_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    month: Mapped[str] = mapped_column(String(7), index=True)
+    kind: Mapped[str] = mapped_column(String(32))
+    article_id: Mapped[int | None] = mapped_column(ForeignKey("articles.id"))
+    at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Digest(Base):
+    """One sending of a month's approved digest: exactly what was sent, to whom, and when."""
+
+    __tablename__ = "digests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    month: Mapped[str] = mapped_column(String(7), index=True)
+    article_ids: Mapped[list] = mapped_column(JsonType)
+    subject: Mapped[str] = mapped_column(String(255))
+    html: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text)
+    recipients: Mapped[list] = mapped_column(JsonType)
+    provider_id: Mapped[str | None] = mapped_column(String(128))
+    editor_minutes: Mapped[float | None] = mapped_column(Float)
+    sent_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))

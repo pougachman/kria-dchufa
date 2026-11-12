@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:12px;">
+  <tr><td dir="rtl" style="padding:24px 24px 8px 24px;border-top:6px solid #1d4ed8;border-radius:12px 12px 0 0;text-align:right;">
+    <div style="font-size:22px;font-weight:bold;">קריאה דחופה</div>
+    <div style="font-size:16px;color:#475569;margin-top:4px;">מאמרים נבחרים לרפואה דחופה, {{ month_he }}</div>
+    <div style="font-size:14px;color:#64748b;margin-top:8px;">{{ count }} מאמרים שאושרו על ידי העורך הלאומי, לפי נושא. הסיכומים באנגלית.</div>
+  </td></tr>
+  {% for g in groups %}
+  <tr><td dir="rtl" style="padding:20px 24px 4px 24px;text-align:right;">
+    <div style="font-size:17px;font-weight:bold;color:#6d28d9;border-bottom:2px solid #ede9fe;padding-bottom:6px;">{{ g.name }}</div>
+  </td></tr>
+  {% for item in g["items"] %}
+  <tr><td dir="ltr" style="padding:12px 24px;text-align:left;">
+    <a href="https://pubmed.ncbi.nlm.nih.gov/{{ item.pmid }}/" style="font-size:16px;font-weight:bold;color:#0f172a;text-decoration:none;">{{ item.title }}</a>
+    <div style="font-size:13px;color:#64748b;margin-top:3px;">{{ item.journal }}{% if item.doi %} · <a href="https://doi.org/{{ item.doi }}" style="color:#64748b;">DOI</a>{% endif %}</div>
+    <div dir="rtl" style="font-size:13px;color:#334155;margin-top:4px;text-align:left;"><span style="background:#f1f5f9;border-radius:10px;padding:2px 8px;">{{ designs.get(item.design, item.design) }}</span></div>
+    <div style="font-size:14px;line-height:1.5;margin-top:8px;">{{ item.summary }}</div>
+    <div style="font-size:13px;line-height:1.5;color:#475569;margin-top:6px;"><b>Why read it:</b> {{ best_reason(item) }}</div>
+  </td></tr>
+  {% endfor %}
+  {% endfor %}
+  <tr><td dir="rtl" style="padding:20px 24px 24px 24px;text-align:right;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;">
+    הרשימה הוכנה בעזרת מודל שפה ואושרה בידי עורך אנושי. הסיכומים נכתבו מהתקציר בלבד; יש לקרוא את המאמר המלא לפני שינוי פרקטיקה.
+    <br><a href="{{ public_url }}" style="color:#94a3b8;">קריאה דחופה</a>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

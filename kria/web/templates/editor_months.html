@@ -1,0 +1,22 @@
+{% extends "editor_base.html" %}
+{% block header_actions %}
+<form method="post" action="/editor/logout"><button class="text-sm text-slate-500 hover:text-slate-800">יציאה</button></form>
+{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">חודשים לאישור</h1>
+{% if not months %}
+  <p class="bg-white rounded-xl p-6">עדיין אין חודש שסונן במלואו. אפשר לעקוב בעמוד <a href="/status" class="text-blue-700 underline">מצב הצנרת</a>.</p>
+{% endif %}
+<div class="space-y-3">
+{% for m in months %}
+  <a href="/editor/{{ m.month }}" class="block bg-white rounded-xl shadow-sm p-5 hover:ring-2 hover:ring-blue-600">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <span class="text-lg font-semibold">{{ m.month_he }}</span>
+      {% if m.sent_at %}<span class="text-sm rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">הדייג'סט נשלח</span>
+      {% else %}<span class="text-sm rounded-full bg-amber-100 text-amber-800 px-3 py-1">ממתין לאישור</span>{% endif %}
+    </div>
+    <p class="text-sm text-slate-600 mt-2">אושרו {{ m.approved }} · נדחו {{ m.rejected }} · זמן עבודה {{ m.minutes }} דקות</p>
+  </a>
+{% endfor %}
+</div>
+{% endblock %}
