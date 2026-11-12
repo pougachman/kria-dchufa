@@ -16,7 +16,10 @@ def test_home_renders_hebrew_rtl():
 def test_healthz():
     r = client.get("/healthz")
     assert r.status_code == 200
-    assert r.json()["status"] == "ok"
+    body = r.json()
+    assert body["status"] == "ok"
+    assert body["database_kind"] == "sqlite"  # tests run without DATABASE_URL
+    assert isinstance(body["ncbi_api_key"], bool) and isinstance(body["anthropic_api_key"], bool)
 
 
 def test_normalize_db_url():

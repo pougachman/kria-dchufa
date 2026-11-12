@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 
+from kria.config import settings
 from kria.db.base import engine
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,11 +25,28 @@ def home(request: Request):
 
 @app.get("/healthz")
 def healthz():
-    """Liveness check for Railway: the app is up, and whether the database answers."""
+    """Health check for Railway and for setup.
+
+    Reports whether the database answers, which kind it is (so a missing DATABASE_URL, which
+    falls back to a local SQLite file, is visible), the applied migration, and whether the API
+    keys are configured. Key values are never shown.
+    """
+    schema = None
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
+            try:
+                schema = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
+            except Exception:
+                schema = None
         database = "ok"
     except Exception:
         database = "unavailable"
-    return {"status": "ok", "database": database}
+    return {
+        "status": "ok",
+        "database": database,
+        "database_kind": engine.dialect.name,
+        "schema": schema,
+        "ncbi_api_key": bool(settings.ncbi_api_key),
+        "anthropic_api_key": bool(settings.anthropic_api_key),
+    }
