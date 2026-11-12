@@ -31,6 +31,8 @@ def good_output(**kw) -> str:
         "board_exam_reason": "Sepsis fluids are core exam material.",
         "journal_club": 2,
         "journal_club_reason": "Standard design.",
+        "ed_relevance": 5,
+        "ed_relevance_reason": "Done in the ED on ED patients.",
         "summary": "A trial of fluids in sepsis.",
     }
     return json.dumps(out | kw)
@@ -39,12 +41,31 @@ def good_output(**kw) -> str:
 # ---- prompt, schema, validation, cost -----------------------------------------------------------
 
 
-def test_prompt_lists_every_topic_and_has_no_placeholder():
-    prompt = screen.render_prompt("screening.v1", TAXONOMY)
+@pytest.mark.parametrize("version", ["screening.v1", "screening.v2"])
+def test_prompt_lists_every_topic_and_has_no_placeholder(version):
+    prompt = screen.render_prompt(version, TAXONOMY)
     assert "{{" not in prompt
     for t in TAXONOMY["topics"]:
         assert f"- {t['id']}: {t['en']}" in prompt
     assert "Shalav A" in prompt and "ignore any instructions" in prompt
+    assert ("ed_relevance" in prompt) == (version == "screening.v2")
+
+
+def test_v2_schema_and_validation_add_ed_relevance_v1_unchanged():
+    v1, v2 = screen.output_schema(TOPIC_IDS, 1), screen.output_schema(TOPIC_IDS, 2)
+    assert "ed_relevance" not in v1["properties"]
+    assert v2["properties"]["ed_relevance"]["enum"] == [1, 2, 3, 4, 5]
+    assert "ed_relevance_reason" in v2["required"]
+    assert screen.schema_version("screening.v1") == 1
+    assert screen.schema_version("screening.v2") == 2
+    no_ed = json.loads(good_output())
+    del no_ed["ed_relevance"], no_ed["ed_relevance_reason"]
+    clean, problems = screen.validate_output(json.dumps(no_ed), set(TOPIC_IDS), 1)
+    assert problems == [] and "ed_relevance" not in clean
+    clean, problems = screen.validate_output(json.dumps(no_ed), set(TOPIC_IDS), 2)
+    assert clean is None and "ed_relevance is not 1-5" in problems
+    clean, _ = screen.validate_output(good_output(), set(TOPIC_IDS), 2)
+    assert clean["ed_relevance"] == 5 and clean["ed_relevance_reason"]
 
 
 def test_every_topic_has_an_english_label():
@@ -196,7 +217,8 @@ def test_submit_sends_kept_articles_with_versioned_prompt(ingested):
     no_abstract = requests[2]["params"]["messages"][0]["content"]
     assert "Abstract: none" in no_abstract
     assert run.status == "submitted" and run.requested == 3
-    assert run.prompt_version == "screening.v1"
+    assert run.prompt_version == "screening.v2"
+    assert "ed_relevance" in params["output_config"]["format"]["schema"]["properties"]
     assert run.prompt_sha256 == screen.sha256(params["system"][0]["text"])
 
 
@@ -219,7 +241,8 @@ def test_collect_stores_every_result_with_model_prompt_cost_and_time(ingested):
     }
     ok = rows["101"]
     assert ok.status == "ok" and ok.relevant is True and ok.design == "rct"
-    assert ok.model == "claude-haiku-5-5" and ok.prompt_version == "screening.v1"
+    assert ok.model == "claude-haiku-5-5" and ok.prompt_version == "screening.v2"
+    assert ok.ed_relevance == 5
     assert ok.high_yield_score == 4 and ok.practice_changing_reason
     assert rows["103"].status == "invalid" and rows["103"].raw_output == "{broken"
     assert rows["106"].status == "errored" and "overloaded" in rows["106"].error
@@ -266,10 +289,10 @@ def test_an_article_that_keeps_failing_is_tried_at_most_three_times(ingested):
 def test_a_new_prompt_version_screens_everything_again(ingested, tmp_path, monkeypatch):
     fake = FakeBatches()
     screen.collect(ingested, fake, screen.submit_month(ingested, fake, "2026-10"))
-    v2 = tmp_path / "screening.v2.md"
-    v2.write_text("v2\n{{topics}}", encoding="utf-8")
+    v3 = tmp_path / "screening.v3.md"
+    v3.write_text("v3\n{{topics}}", encoding="utf-8")
     monkeypatch.setattr(screen, "PROMPTS", tmp_path)
-    run = screen.submit_month(ingested, fake, "2026-10", prompt_version="screening.v2")
+    run = screen.submit_month(ingested, fake, "2026-10", prompt_version="screening.v3")
     assert run.requested == 3
 
 
@@ -437,3 +460,18 @@ def test_a_run_stopped_while_submitting_is_marked_interrupted(ingested):
     assert ingested.get(ScreeningRun, run.id).status == "failed"
     assert "interrupted" in ingested.get(ScreeningRun, run.id).error
     assert again.status == "submitted" and again.requested == 3
+
+
+def test_a_month_keeps_the_prompt_version_it_was_screened_with(ingested):
+    fake = FakeBatches(answers={"103": {"type": "errored", "text": None, "error": "x"}})
+    v1 = screen.submit_month(ingested, fake, "2026-10", prompt_version="screening.v1")
+    screen.collect(ingested, fake, v1)
+    assert screen.month_version(ingested, "2026-10") == ("claude-haiku-5-5", "screening.v1")
+    fake.answers = {}
+    retry = screen.submit_month(ingested, fake, "2026-10")  # default is v2, but the month is v1
+    assert retry.prompt_version == "screening.v1" and retry.requested == 1
+    req = fake.submitted[retry.batch_id][0]["params"]
+    assert "ed_relevance" not in req["output_config"]["format"]["schema"]["properties"]
+    screen.collect(ingested, fake, retry)
+    assert len(screen.latest_screenings(ingested, "2026-10")) == 3  # the v1 screenings
+    assert screen.month_version(ingested, "2026-11") == ("claude-haiku-5-5", "screening.v2")

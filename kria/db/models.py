@@ -183,6 +183,9 @@ class Screening(Base):
     board_exam_reason: Mapped[str | None] = mapped_column(Text)
     journal_club: Mapped[int | None] = mapped_column(Integer)
     journal_club_reason: Mapped[str | None] = mapped_column(Text)
+    # From screening.v2: connection to ED work, 1-5 (ranking key after the high-yield score).
+    ed_relevance: Mapped[int | None] = mapped_column(Integer)
+    ed_relevance_reason: Mapped[str | None] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
     raw_output: Mapped[str | None] = mapped_column(Text)
     error: Mapped[str | None] = mapped_column(Text)

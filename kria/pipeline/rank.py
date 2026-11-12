@@ -1,9 +1,11 @@
 """Rank screened articles into the editor's shortlist. Deterministic code, no model.
 
 High yield = the highest of the three scores (practice-changing, board exam, journal club).
-Ties are broken, in order, by study design, journal tier, the sum of the three scores, and PMID
-(so the order never changes between runs). The spec's other tie-breakers, FOAMed coverage and
-past curator ratings, are added when those signals exist (FOAMed feeds and M5 ratings).
+Ties are broken, in order, by connection to ED work (ed_relevance, from screening.v2: studies
+from other specialties rank below ED studies with the same score; Yoav, 2026-11-12), study
+design, journal tier, the sum of the three scores, and PMID (so the order never changes).
+The spec's other tie-breakers, FOAMed coverage and past curator ratings, are added when those
+signals exist (FOAMed feeds and M5 ratings).
 Only articles screened as relevant are ranked.
 """
 
@@ -55,6 +57,7 @@ def sort_key(article: Article, s: Screening, tiers: dict[str, int]) -> tuple:
     total = s.practice_changing + s.board_exam + s.journal_club
     return (
         -s.high_yield_score,
+        -(s.ed_relevance or 0),
         DESIGN_TIER.get(s.design, 3),
         tiers.get(article.journal_ta, 2),
         -total,
@@ -96,6 +99,11 @@ def shortlist(
                 "board_exam": s.board_exam_reason,
                 "journal_club": s.journal_club_reason,
             },
+            "ed": (
+                {"score": s.ed_relevance, "reason": s.ed_relevance_reason}
+                if s.ed_relevance is not None
+                else None
+            ),
             "design": s.design,
             "topics": list(s.topics),
             "summary": s.summary,

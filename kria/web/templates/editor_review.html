@@ -45,6 +45,12 @@
         <dd class="en text-slate-700">{{ item.reasons[key] }}</dd>
       </div>
       {% endfor %}
+      {% if item.ed %}
+      <div class="flex gap-2 items-baseline">
+        <dt class="shrink-0 w-28 text-slate-500">קשר למלר"ד <span class="font-semibold text-slate-800">{{ item.ed.score }}</span></dt>
+        <dd class="en text-slate-700">{{ item.ed.reason }}</dd>
+      </div>
+      {% endif %}
     </dl>
 
     <form method="post" action="/editor/{{ month }}/decide" class="mt-4 flex flex-wrap gap-2">
