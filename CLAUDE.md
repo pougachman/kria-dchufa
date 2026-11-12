@@ -65,13 +65,12 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
 - [x] M0 infrastructure: deployed on Railway at https://kria-dchufa-production.up.railway.app
       (home page verified 2026-11-12). Yoav can open /healthz to confirm database_kind is
       postgresql; if it says sqlite, DATABASE_URL in Railway needs fixing
-- [ ] M1 PubMed ingestion: code done; October 2026 run twice on local Postgres with identical
-      results (3,451 records, 2,398 kept). Needs a run on Railway: the daily job
-      (`kria.pipeline.monthly`, Railway cron service, see README) does it on its first run
-- [ ] M2 screening and scoring: code done and tested offline (2026-11-12): Haiku 5.5 via
-      Message Batches, prompt `screening.v1`, validated JSON per article, cost/time per run,
-      ranked shortlist, Hebrew /status page. Needs ANTHROPIC_API_KEY on Railway and the daily
-      job's first real run (October 2026, estimated under 1 USD); then check /status
+- [x] M1 PubMed ingestion: October 2026 run twice on local Postgres and once on Railway
+      (2026-11-12), identical each time: 3,451 records, 2,398 kept
+- [x] M2 screening and scoring (2026-11-12): Haiku 5.5 via Message Batches, prompt
+      `screening.v1`. First real run on Railway, October 2026: 2,398 of 2,398 screened,
+      949 relevant, 291 scored 4-5, 14.3 minutes, 0.30 USD. Daily job `monthly-job` on Railway
+      (cron 05:00 UTC); progress and failures on /status. Next: sensitivity check (gate 1)
 - [ ] M3 approval screen and digest
 - [ ] M4 appraisal engine
 - [ ] M5 programs and roles
