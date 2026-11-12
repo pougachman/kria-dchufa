@@ -10,7 +10,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from kria.config import settings
+from kria.config import anthropic_key_looks_valid, settings
 from kria.db.base import SessionLocal, engine
 from kria.db.models import IngestRun, ScreeningRun
 from kria.pipeline.batches import as_utc
@@ -58,6 +58,7 @@ def healthz():
         "schema": schema,
         "ncbi_api_key": bool(settings.ncbi_api_key),
         "anthropic_api_key": bool(settings.anthropic_api_key),
+        "anthropic_api_key_format_ok": anthropic_key_looks_valid(settings.anthropic_api_key),
     }
 
 
