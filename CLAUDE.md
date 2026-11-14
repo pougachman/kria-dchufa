@@ -78,7 +78,8 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       one-click approve/reject and ★ top articles, editor minutes, digest email through Resend
       (design v2). October 2026 digest approved and emailed to Yoav: 21 approved, 21 editor
       minutes without reading the articles (Yoav's estimate for a real month: about 45).
-      Resend sends only to Yoav until a domain is verified (deferred; Dr. Zaki got a forward)
+      Sender domain kria.drpougach.com verified in Resend (2026-11-14); recipients in
+      DIGEST_RECIPIENTS on Railway
 - [x] M4 appraisal engine (2026-11-14): /editor/appraisals, open access (PMC via NCBI, Europe
       PMC, Unpaywall) or uploaded PDF, Opus 5.5 extract/report/Guest Skeptic/reconcile (prompts
       v2/v3: one page, about 600 words, at most 1 USD; one appraisal a month), stats in calc.py,

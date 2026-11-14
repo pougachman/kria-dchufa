@@ -55,9 +55,12 @@ Defaults are in effect until he decides; record each answer here and in the live
   CRASH-3, HALT-IT; about 3 USD) and compare each with its SGEM episode. Done 2026-11-14: all 5
   ran on Railway and Yoav reviewed them against SGEM ("good"). M4 done.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
-  received the October digest as a forward from Yoav; feedback pending. Domain verification
-  in Resend (for sending to other directors directly) is deferred until more directors join;
-  plan: verify the subdomain kria.drpougach.com (domain bought through Apple iCloud+).
+  received the October digest as a forward from Yoav; feedback pending. Resend domain
+  verified on 2026-11-14: the subdomain kria.drpougach.com (DNS at Cloudflare, domain bought
+  through Apple iCloud+; only records under kria were added, the main domain and Yoav's email
+  are untouched; the optional root DMARC record was not added). Sender:
+  `DIGEST_FROM=Kria Dchufa <digest@kria.drpougach.com>`; a test send reached Yoav's inbox.
+  Recipients are set in `DIGEST_RECIPIENTS` on Railway (comma-separated).
 - Digest email: through Resend (Yoav, 2026-11-12). Pilot recipients: Yoav only. Until a domain
   is verified in Resend, the sender is onboarding@resend.dev, which can send only to the
   Resend account's own address.
