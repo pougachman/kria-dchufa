@@ -79,7 +79,10 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       (design v2). October 2026 digest approved and emailed to Yoav: 21 approved, 21 editor
       minutes without reading the articles (Yoav's estimate for a real month: about 45).
       Resend sends only to Yoav until a domain is verified (deferred; Dr. Zaki got a forward)
-- [ ] M4 appraisal engine
+- [ ] M4 appraisal engine: code done (2026-11-14): /editor/appraisals, open access (Europe PMC,
+      Unpaywall) or uploaded PDF, Opus 5.5 extract/report/Guest Skeptic/reconcile, stats in
+      calc.py, quote and number checks, approve -> PDF deleted and public /a/<token>, digest
+      link. Needs Yoav's approval of eval/sgem_benchmark/benchmark.yaml and the 10 runs
 - [ ] M5 programs and roles
 - [ ] M6 reading lists and questions
 - [ ] M7 shared library

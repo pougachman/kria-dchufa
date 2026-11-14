@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{{ article.title[:80] }} · קריאה דחופה</title>
+  <link rel="stylesheet" href="/static/editor.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <header class="bg-slate-900 text-white">
+    <div class="max-w-3xl mx-auto px-4 py-5">
+      <p class="text-xs font-bold tracking-widest text-rose-300 en" style="text-align:right">URGENT READ</p>
+      <p class="text-xl font-bold">קריאה דחופה · ניתוח ביקורתי</p>
+    </div>
+  </header>
+  <main class="max-w-3xl mx-auto px-4 py-6">
+    <h1 class="en text-2xl font-bold leading-snug">{{ article.title }}</h1>
+    <p class="en text-sm text-slate-500 mt-1 mb-5">{{ article.journal_ta }} · <a class="hover:underline" href="https://pubmed.ncbi.nlm.nih.gov/{{ article.pmid }}/">PubMed</a>{% if article.doi %} · <a class="hover:underline" href="https://doi.org/{{ article.doi }}">DOI</a>{% endif %}</p>
+    {% include "editor_appraisal_report.html" %}
+  </main>
+</body>
+</html>

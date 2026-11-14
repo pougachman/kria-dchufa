@@ -30,6 +30,10 @@ service variables. Health check: `/healthz`. Pipeline progress (Hebrew, counts a
 Editor screen and digest (M3): on the site service add `EDITOR_PASSWORD`, `RESEND_API_KEY`
 and `DIGEST_RECIPIENTS` (comma-separated). The editor works at `/editor`.
 
+Appraisals (M4): optional `UNPAYWALL_EMAIL` on the site service lets the open-access lookup
+also ask Unpaywall; without it only Europe PMC is searched. The editor works at
+`/editor/appraisals`.
+
 Monthly pipeline: add a second service from the same repository, with
 - Custom Start Command: `sh -c "alembic upgrade head && python -m kria.pipeline.monthly"`
 - Cron Schedule: `0 5 * * *` (every day at 05:00 UTC)

@@ -82,3 +82,31 @@ def diagnostic(tp: int, fp: int, fn: int, tn: int, pretest=(0.05, 0.15, 0.30)) -
         "post_pos": {p: post(p, lrp) for p in pretest},
         "post_neg": {p: post(p, lrn) for p in pretest},
     }
+
+
+def binary_effect(e1: int, n1: int, e0: int, n0: int, undesirable: bool = True) -> dict:
+    """Risk metrics for a binary outcome, with direction made explicit.
+
+    e1/n1 = intervention, e0/n0 = control. `undesirable` says whether the event is bad (death,
+    intubation) or good (survival, ROSC). `difference` is p_int - p_ctrl. NNT is the number to
+    treat for one more good outcome (or one fewer bad one); NNH the number for one more harm.
+    """
+    m = risk_metrics(e1, n1, e0, n0)
+    diff = m["p_int"] - m["p_ctrl"]
+    lo, hi = m["ARR_95CI"]  # ARR = p_ctrl - p_int, so the difference CI is (-hi, -lo)
+    benefit = (diff < 0) if undesirable else (diff > 0)
+    n = 1 / abs(diff) if diff else float("inf")
+    fragility = fragility_index(e1, n1, e0, n0)
+    return {
+        "p_int": m["p_int"],
+        "p_ctrl": m["p_ctrl"],
+        "difference": diff,
+        "difference_95CI": (-hi, -lo),
+        "RR": m["RR"],
+        "direction": "none" if diff == 0 else ("benefit" if benefit else "harm"),
+        "NNT": n if benefit and diff else None,
+        "NNH": n if not benefit and diff else None,
+        "fisher_p": m["fisher_p"],
+        "fragility_index": fragility,
+        "undesirable_event": undesirable,
+    }

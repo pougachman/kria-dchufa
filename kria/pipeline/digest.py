@@ -158,6 +158,13 @@ def content(session: Session, month: str) -> dict:
     order = {t["id"]: i for i, t in enumerate(taxonomy["topics"])}
     names = {t["id"]: t["he"] for t in taxonomy["topics"]}
     approved = [i for i in ranked(session, month) if i["decision"] == "approved"]
+    from kria.appraisal.service import approved_for
+    from kria.config import settings
+
+    appraisals = approved_for(session, [i["article_id"] for i in approved])
+    for item in approved:
+        a = appraisals.get(item["article_id"])
+        item["appraisal_url"] = f"{settings.public_url}/a/{a.public_token}" if a else None
     top = [i for i in approved if i["featured"]][:FEATURED] or approved[:FEATURED]
     for item in approved:
         item["topic_names"] = [names.get(t, t) for t in item["topics"]]

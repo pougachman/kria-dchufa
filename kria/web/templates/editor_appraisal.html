@@ -1,0 +1,102 @@
+{% extends "editor_base.html" %}
+{% block title %}ניתוח · מסך העורך{% endblock %}
+{% block content %}
+{% if a.status in ("queued", "running") and not stale %}<meta http-equiv="refresh" content="15">{% endif %}
+<a href="/editor/appraisals" class="text-sm text-slate-500 hover:text-slate-800">→ כל הניתוחים</a>
+
+<div class="mt-2 mb-4">
+  <div class="flex flex-wrap items-center gap-2 text-sm mb-2">
+    <span class="rounded-full px-2.5 py-0.5 font-semibold
+      {% if a.status == 'approved' %}bg-emerald-100 text-emerald-800{% elif a.status == 'review' %}bg-blue-100 text-blue-800{% elif a.status == 'failed' %}bg-red-100 text-red-800{% elif a.status == 'needs_pdf' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-700{% endif %}">{{ status_he.get(a.status, a.status) }}</span>
+    {% if a.source %}<span class="rounded-full bg-slate-100 px-2.5 py-0.5">{{ source_he.get(a.source, a.source) }}</span>{% endif %}
+    {% if a.cost_usd %}<span class="text-slate-500">עלות: ${{ "%.2f"|format(a.cost_usd) }}</span>{% endif %}
+  </div>
+  <h1 class="en text-xl font-bold">{{ article.title }}</h1>
+  <p class="en text-sm text-slate-500 mt-1">{{ article.journal_ta }} · PMID <a class="hover:underline" target="_blank" rel="noopener" href="https://pubmed.ncbi.nlm.nih.gov/{{ article.pmid }}/">{{ article.pmid }}</a>{% if article.doi %} · <a class="hover:underline" target="_blank" rel="noopener" href="https://doi.org/{{ article.doi }}">DOI</a>{% endif %}</p>
+</div>
+
+{% if error %}<p class="rounded-lg bg-red-100 text-red-900 p-4 mb-4">{{ error }}</p>{% endif %}
+{% if note %}<p class="rounded-lg bg-emerald-100 text-emerald-900 p-4 mb-4">{{ note }}</p>{% endif %}
+
+{% if a.status == "needs_pdf" %}
+<section class="bg-white rounded-xl shadow-sm p-5 mb-5 space-y-4">
+  <h2 class="text-lg font-semibold">לא נמצא טקסט מלא בגישה פתוחה</h2>
+  <ol class="list-decimal pr-5 space-y-1 text-slate-700">
+    <li>פתח את המאמר דרך הגישה שלך (למשל ספריית בית החולים):
+      {% if article.doi %}<a class="en text-blue-700 underline" target="_blank" rel="noopener" href="https://doi.org/{{ article.doi }}">doi.org/{{ article.doi }}</a>{% else %}<a class="text-blue-700 underline" target="_blank" rel="noopener" href="https://pubmed.ncbi.nlm.nih.gov/{{ article.pmid }}/">PubMed</a>{% endif %}</li>
+    <li>הורד את ה-PDF (אפשר גם מהטלפון).</li>
+    <li>העלה אותו כאן. המערכת בודקת שה-DOI או הכותרת בקובץ תואמים למאמר.</li>
+  </ol>
+  <form method="post" action="/editor/appraisals/{{ a.id }}/upload" enctype="multipart/form-data" class="flex flex-wrap gap-3 items-center">
+    <input type="file" name="pdf" accept="application/pdf,.pdf" required
+           class="block text-sm file:ml-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-blue-800">
+    <button class="rounded-lg bg-blue-700 text-white px-5 py-2 font-semibold hover:bg-blue-800">העלאה והתחלת ניתוח</button>
+  </form>
+  <p class="text-xs text-slate-500">הקובץ נשמר רק לניתוח הזה, לא מוצג לאף אחד, ונמחק כשתאשר את הניתוח (ולכל המאוחר אחרי 30 יום).</p>
+  <form method="post" action="/editor/appraisals/{{ a.id }}/action" class="pt-2 border-t">
+    <button name="action" value="abstract" class="text-sm text-slate-600 underline hover:text-slate-900">אין גישה? ניתוח מתקציר בלבד (מסומן כמוגבל)</button>
+  </form>
+  {% if a.lookup %}<details class="text-xs text-slate-500"><summary>מה נבדק בחיפוש הגישה הפתוחה</summary>
+    <ul class="en mt-1">{% for k, v in a.lookup.items() %}<li>{{ k }}: {{ v }}</li>{% endfor %}</ul></details>{% endif %}
+</section>
+{% endif %}
+
+{% if a.status in ("queued", "running") %}
+<section class="bg-white rounded-xl shadow-sm p-5 mb-5">
+  {% if stale %}
+    <p class="text-amber-800">הניתוח נתקע (רץ יותר משעה). אפשר להריץ שוב.</p>
+    <form method="post" action="/editor/appraisals/{{ a.id }}/action" class="mt-3"><button name="action" value="rerun" class="rounded-lg border border-slate-300 px-4 py-2">הרצה מחדש</button></form>
+  {% else %}
+    <p class="font-semibold">הניתוח בעבודה{% if a.stage %}: {{ stage_he.get(a.stage, a.stage) }}{% endif %}.</p>
+    <p class="text-sm text-slate-600 mt-1">ארבעה שלבים: חילוץ נתונים, כתיבה, Guest Skeptic, יישוב מחלוקות. זה לוקח בדרך כלל 5-15 דקות. העמוד מתרענן לבד.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if a.status == "failed" %}
+<section class="bg-white rounded-xl shadow-sm p-5 mb-5">
+  <p class="text-red-800 font-semibold">הניתוח נכשל.</p>
+  <p class="en text-sm text-slate-600 mt-1">{{ a.error }}</p>
+  <form method="post" action="/editor/appraisals/{{ a.id }}/action" class="mt-3"><button name="action" value="rerun" class="rounded-lg border border-slate-300 px-4 py-2">הרצה מחדש</button></form>
+</section>
+{% endif %}
+
+{% if a.report %}
+  {% if a.checks %}
+  <section class="bg-white rounded-xl shadow-sm p-5 mb-5">
+    <h2 class="text-lg font-semibold mb-2">בדיקות קוד (רק אתה רואה את זה)</h2>
+    <p>ציטוטים שנמצאו במקום שצוין: <strong>{{ a.checks.quotes_verified }} מתוך {{ a.checks.quotes_total }}</strong>.</p>
+    {% set bad = a.checks.quotes | rejectattr("verified") | list %}
+    {% if bad %}
+    <details class="mt-2"><summary class="cursor-pointer text-amber-800">{{ bad | length }} ציטוטים שלא אומתו: כדאי לבדוק אותם מול המאמר</summary>
+      <ul class="en mt-2 space-y-2 text-sm">{% for q in bad %}<li><span class="text-slate-500">{{ q.where }} [{{ q.anchor }}]:</span> "{{ q.quote }}" <span class="text-amber-800">({{ q.reason }})</span></li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+    {% if a.checks.unsupported_numbers %}
+    <p class="mt-2 text-amber-800">מספרים בניתוח שלא נמצאו במאמר ולא בחישובים: <span class="en">{{ a.checks.unsupported_numbers | join(", ") }}</span>. בדוק אותם לפני אישור.</p>
+    {% else %}
+    <p class="mt-2 text-emerald-800">כל המספרים בניתוח נמצאו במאמר או בחישובי הקוד.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if a.status == "review" %}
+  <section class="bg-white rounded-xl shadow-sm p-5 mb-5 flex flex-wrap gap-3 items-center">
+    <form method="post" action="/editor/appraisals/{{ a.id }}/action" onsubmit="return confirm('לאשר ולפרסם? קובץ ה-PDF יימחק.');">
+      <button name="action" value="approve" class="rounded-lg bg-emerald-600 text-white px-5 py-2 font-semibold hover:bg-emerald-700">אישור ופרסום</button>
+    </form>
+    <form method="post" action="/editor/appraisals/{{ a.id }}/action"><button name="action" value="rerun" class="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-50">הרצה מחדש</button></form>
+    <form method="post" action="/editor/appraisals/{{ a.id }}/action" onsubmit="return confirm('לדחות את הניתוח?');"><button name="action" value="reject" class="rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-50">דחייה</button></form>
+    <span class="text-sm text-slate-500">באישור, ה-PDF נמחק והניתוח מקבל קישור קבוע.</span>
+  </section>
+  {% endif %}
+  {% if a.status == "approved" %}
+  <section class="bg-emerald-50 rounded-xl p-5 mb-5">
+    <p class="font-semibold text-emerald-900">הניתוח אושר ופורסם. קובץ ה-PDF נמחק.</p>
+    <p class="text-sm mt-1">קישור לשיתוף: <a class="en text-blue-700 underline break-all" href="{{ public_url }}">{{ public_url }}</a></p>
+  </section>
+  {% endif %}
+
+  {% include "editor_appraisal_report.html" %}
+{% endif %}
+{% endblock %}

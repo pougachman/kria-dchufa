@@ -40,6 +40,10 @@ Defaults are in effect until he decides; record each answer here and in the live
 - Size of the national digest per month: no fixed number; the digest is exactly what the
   editor approves (Yoav, 2026-11-12). Revisit after a few months.
 - Editor access until M5: one editor password, `EDITOR_PASSWORD` (Yoav, 2026-11-12).
+- Appraisal (Yoav, 2026-11-14): written with Claude Opus 5.5 (about 0.7 USD per appraisal,
+  about 7 USD for 10 a month); an approved appraisal gets its own page at an unguessable link
+  (/a/<token>) and the digest links to it, until the shared library (M7) exists; the benchmark
+  list is proposed by Claude in `eval/sgem_benchmark/benchmark.yaml` and awaits Yoav's approval.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
   received the October digest as a forward from Yoav; feedback pending. Domain verification
   in Resend (for sending to other directors directly) is deferred until more directors join;
@@ -121,3 +125,27 @@ tokens each: about 3.5 USD on Sonnet 5.5 or 7 USD on Opus 5.5. Hosting and email
   the other articles by topic with a topic index. Top articles are not repeated below.
 - Styles: Tailwind 3.4.16 compiled to `kria/web/static/editor.css` (no runtime CDN, which
   hospital networks may block); command in `tailwind.config.js`.
+
+## M4 as built (2026-11-14)
+
+- Request on /editor/appraisals by PMID or DOI (or "request appraisal" on any article card).
+  The article comes from PubMed; the reference is built from the record, never by the model.
+- Full text (`kria/appraisal/fulltext.py`): Europe PMC full-text XML (PMC open-access subset),
+  then an open-access PDF from Unpaywall (needs `UNPAYWALL_EMAIL`), otherwise the editor
+  downloads the PDF with their own access and uploads it (phone works). The upload must contain
+  the article's DOI or most of its title words. Otherwise: abstract only, labelled limited.
+- Files (`uploaded_files`): visible to no one (never served), deleted on approval or rejection,
+  and by the daily job after 30 days. The library keeps the appraisal and the link only.
+- Engine (`kria/appraisal/engine.py`), Claude Opus 5.5, effort high, structured JSON, the article
+  sent once and cached across steps (PDF as a document block, XML as text with section markers):
+  extract (quotes with page or section anchors) -> statistics in `calc.py` (`binary_effect`:
+  difference with Newcombe CI, RR, NNT/NNH, Fisher p, fragility index; `diagnostic`) -> SGEM
+  first pass -> Guest Skeptic -> reconcile with remaining disagreements. Server-side fallback on
+  refusal is on; the served model is stored for every step with the prompt version.
+- Code checks shown to the editor only: each quote is searched at its cited page/section
+  (normalised text); numbers in the report found neither in the article nor in the computed
+  statistics are listed. The case vignette and the reference are not number-checked.
+- Review page: status (auto-refresh while running), checks, approve (deletes the file and
+  publishes /a/<token>), re-run, reject. The digest shows "Full appraisal" for approved ones.
+- Done when (unchanged): the 10 benchmark articles are appraised from open access or an
+  uploaded PDF, every number anchored to a page, and the PDF deleted after approval.

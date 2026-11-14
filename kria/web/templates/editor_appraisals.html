@@ -1,0 +1,37 @@
+{% extends "editor_base.html" %}
+{% block title %}ניתוחים ביקורתיים · מסך העורך{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-2">ניתוחים ביקורתיים</h1>
+<p class="text-slate-600 mb-4">ניתוח בסגנון SGEM לכל מאמר לפי בקשה. המערכת מחפשת טקסט מלא בגישה פתוחה; אם אין, תתבקש להעלות PDF שהורדת בגישה שלך. ניתוח שתאשר יקבל עמוד משלו, וקישור אליו יופיע בדייג'סט.</p>
+
+{% if error %}<p class="rounded-lg bg-red-100 text-red-900 p-4 mb-4">{{ error }}</p>{% endif %}
+{% if not key_ok %}<p class="rounded-lg bg-amber-100 text-amber-900 p-4 mb-4">מפתח Claude לא מוגדר, אז הניתוח לא ירוץ.</p>{% endif %}
+
+<form method="post" action="/editor/appraisals" class="bg-white rounded-xl shadow-sm p-5 mb-6 flex flex-wrap gap-3 items-end">
+  <label class="flex-1 min-w-[16rem]">
+    <span class="text-sm text-slate-600">PMID או DOI של המאמר</span>
+    <input name="identifier" required placeholder="למשל 30449534 או 10.1056/NEJMoa1806842"
+           class="en mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-600 focus:outline-none">
+  </label>
+  <button class="rounded-lg bg-blue-700 text-white px-5 py-2 font-semibold hover:bg-blue-800">בקש ניתוח</button>
+</form>
+
+{% if rows %}
+<ul class="space-y-3">
+  {% for a, article in rows %}
+  <li><a href="/editor/appraisals/{{ a.id }}" class="block bg-white rounded-xl shadow-sm p-4 hover:ring-2 hover:ring-blue-600">
+    <div class="flex flex-wrap items-center gap-2 text-sm mb-1">
+      <span class="rounded-full px-2.5 py-0.5 font-semibold
+        {% if a.status == 'approved' %}bg-emerald-100 text-emerald-800{% elif a.status == 'review' %}bg-blue-100 text-blue-800{% elif a.status == 'failed' %}bg-red-100 text-red-800{% elif a.status == 'needs_pdf' %}bg-amber-100 text-amber-800{% else %}bg-slate-100 text-slate-700{% endif %}">{{ status_he.get(a.status, a.status) }}</span>
+      {% if a.source %}<span class="text-slate-500">{{ source_he.get(a.source, a.source) }}</span>{% endif %}
+      <span class="text-slate-400">{{ a.requested_at.strftime("%d/%m/%Y") }}</span>
+    </div>
+    <p class="en font-semibold">{{ article.title }}</p>
+    <p class="en text-sm text-slate-500">{{ article.journal_ta }} · PMID {{ article.pmid }}</p>
+  </a></li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="bg-white rounded-xl p-6 text-slate-600">עדיין לא התבקש אף ניתוח.</p>
+{% endif %}
+{% endblock %}

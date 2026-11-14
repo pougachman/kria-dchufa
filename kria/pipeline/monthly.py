@@ -34,7 +34,10 @@ def previous_month(today: dt.date) -> str:
 
 def step(session: Session, month: str, pubmed, batches, wait: bool = False) -> str:
     """Do the missing steps for the month and say what happened."""
-    done = ""
+    from kria.appraisal.engine import purge_expired_files
+
+    purged = purge_expired_files(session)
+    done = f"deleted {purged} full-text files older than 30 days; " if purged else ""
     if screen.latest_ingest_run(session, month) is None:
         screen.log(f"ingesting {month} from PubMed")
         run = ingest.ingest_month(session, pubmed(), month)
