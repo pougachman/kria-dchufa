@@ -74,10 +74,11 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       (cron 05:00 UTC); progress and failures on /status. Next: sensitivity check (gate 1).
       Prompt `screening.v2` (adds ed_relevance) is the default from November 2026; a month
       keeps the prompt version it was first screened with (`screen.month_version`)
-- [ ] M3 approval screen and digest: code done (2026-11-12): /editor with password, ranked
-      shortlist with one-click approve/reject, editor minutes, digest email through Resend.
-      Needs EDITOR_PASSWORD, RESEND_API_KEY and DIGEST_RECIPIENTS on Railway, then October's
-      digest approved and emailed
+- [x] M3 approval screen and digest (2026-11-12): /editor with password, ranked shortlist with
+      one-click approve/reject and ★ top articles, editor minutes, digest email through Resend
+      (design v2). October 2026 digest approved and emailed to Yoav: 21 approved, 21 editor
+      minutes without reading the articles (Yoav's estimate for a real month: about 45).
+      Resend sends only to Yoav until a domain is verified (deferred; Dr. Zaki got a forward)
 - [ ] M4 appraisal engine
 - [ ] M5 programs and roles
 - [ ] M6 reading lists and questions
