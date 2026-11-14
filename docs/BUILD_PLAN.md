@@ -48,7 +48,9 @@ Defaults are in effect until he decides; record each answer here and in the live
   about 5,500 words and 1.02 USD, "far too long and too expensive"): one page, about 600 words;
   at most 1 USD per appraisal, still on Opus; one article a month gets a full appraisal.
   Prompts v2 set word limits per section and drop the separate quality checklist (risk of bias
-  covers it); extraction runs at medium effort. Open: whether the 10-article benchmark run
+  covers it); extraction runs at medium effort. CLOVERS with v2: 0.62 USD and 953 reading
+  words (from 5,552); most of the excess was PICO from the extraction step, so extraction v3
+  limits each PICO element to 20 words. Open: whether the 10-article benchmark run
   (a one-time test, at most 10 USD) is still wanted given one appraisal a month.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
   received the October digest as a forward from Yoav; feedback pending. Domain verification

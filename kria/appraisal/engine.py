@@ -34,7 +34,7 @@ PROMPTS = ROOT / "prompts"
 # v2 (Yoav, 2026-11-14, after the first live appraisal: about 5,500 words and 1.02 USD):
 # one page, about 600 words, word limits per section, no separate quality checklist.
 PROMPT_VERSIONS = {
-    "extract": "appraisal_extract.v2",
+    "extract": "appraisal_extract.v3",  # v3: PICO elements up to 20 words each
     "report": "appraisal_report.v2",
     "skeptic": "appraisal_skeptic.v2",
     "reconcile": "appraisal_reconcile.v2",
