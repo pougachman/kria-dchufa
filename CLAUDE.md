@@ -83,8 +83,9 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       Unpaywall) or uploaded PDF, Opus 5.5 extract/report/Guest Skeptic/reconcile, stats in
       calc.py, quote and number checks, approve -> PDF deleted and public /a/<token>, digest
       link. First live run (CLOVERS) worked but was too long (5,500 words, 1.02 USD); prompts
-      v2 (one page, about 600 words, at most 1 USD, one appraisal a month). Needs a v2 run and
-      Yoav's decision on the 10-article benchmark (eval/sgem_benchmark/benchmark.yaml)
+      v2 (one page, about 600 words, at most 1 USD, one appraisal a month); CLOVERS v2: 0.62 USD,
+      953 words; extraction v3 shortens PICO. Done when the reduced benchmark (CLOVERS, PREVENT,
+      SALT-ED, CRASH-3, HALT-IT; eval/sgem_benchmark/benchmark.yaml) is run and approved
 - [ ] M5 programs and roles
 - [ ] M6 reading lists and questions
 - [ ] M7 shared library
