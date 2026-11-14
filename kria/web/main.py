@@ -11,11 +11,14 @@ from kria.config import anthropic_key_looks_valid, settings
 from kria.db.base import engine
 from kria.db.models import IngestRun, ScreeningRun
 from kria.pipeline.batches import as_utc
+from kria.web.appraisals import router as appraisal_router
 from kria.web.deps import BASE_DIR, get_session, templates
 from kria.web.editor import router as editor_router
 
 app = FastAPI(title="קריאה דחופה")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+# The appraisal routes come first: /editor/appraisals must not be read as /editor/{month}.
+app.include_router(appraisal_router)
 app.include_router(editor_router)
 
 

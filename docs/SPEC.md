@@ -82,6 +82,8 @@ separate Guest Skeptic pass (spin, outcome switching, composite/surrogate outcom
 multiplicity, subgroup credibility, early stopping, funding/COI) -> reconcile and report
 remaining disagreements.
 
+Built in M4 (2026-11-14): see `docs/BUILD_PLAN.md` "M4 as built".
+
 Safety: abstract-only appraisals are labeled limited and stay out of the library; missing data
 is "not reported"; no reference that was not retrieved; library entry only after editor approval.
 

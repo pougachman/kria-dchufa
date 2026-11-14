@@ -75,6 +75,10 @@
         <button name="decision" value="rejected" class="rounded-lg border border-slate-300 bg-white px-5 py-2 hover:bg-slate-100">דחייה</button>
       {% endif %}
     </form>
+    <form method="post" action="/editor/appraisals" class="mt-2">
+      <input type="hidden" name="identifier" value="{{ item.pmid }}">
+      <button class="text-sm text-blue-700 hover:underline">בקש ניתוח ביקורתי למאמר הזה ←</button>
+    </form>
   </li>
 {% endfor %}
 </ol>

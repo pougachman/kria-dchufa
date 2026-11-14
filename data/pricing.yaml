@@ -10,3 +10,6 @@ models:
   claude-haiku-5-5: {input: 0.10, output: 0.50}
   claude-sonnet-5-5: {input: 2.00, output: 10.00}
   claude-opus-5-5: {input: 4.00, output: 20.00}
+  # Possible server-side fallbacks for Opus 5.5 when it declines a request.
+  claude-opus-5: {input: 5.00, output: 25.00}
+  claude-opus-4-8: {input: 5.00, output: 25.00}

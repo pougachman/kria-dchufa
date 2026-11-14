@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     digest_recipients: str | None = None  # comma-separated
     public_url: str = "https://kria-dchufa-production.up.railway.app"
 
+    # M4 appraisal. Unpaywall asks callers for a contact email; without one it is skipped and
+    # only Europe PMC is searched for open-access full text.
+    unpaywall_email: str | None = None
+
     @property
     def recipients(self) -> list[str]:
         return [r.strip() for r in (self.digest_recipients or "").split(",") if r.strip()]
@@ -42,6 +46,7 @@ class Settings(BaseSettings):
         "editor_password",
         "resend_api_key",
         "digest_recipients",
+        "unpaywall_email",
         mode="before",
     )
     @classmethod

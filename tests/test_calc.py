@@ -2,6 +2,7 @@ import math
 
 import pytest
 
+from kria.appraisal import calc
 from kria.appraisal.calc import diagnostic, fragility_index, risk_metrics
 
 
@@ -32,3 +33,31 @@ def test_diagnostic_known_values():
     assert d["LRneg"] == pytest.approx(0.1176, abs=1e-4)
     assert d["post_pos"][0.15] == pytest.approx(0.5143, abs=1e-4)
     assert math.isfinite(d["post_neg"][0.05])
+
+
+def test_binary_effect_bad_event_benefit():
+    # Death 20/100 with treatment vs 30/100 with control: 10 points fewer deaths, NNT 10.
+    r = calc.binary_effect(20, 100, 30, 100, undesirable=True)
+    assert r["difference"] == pytest.approx(-0.10)
+    assert r["direction"] == "benefit"
+    assert r["NNT"] == pytest.approx(10.0) and r["NNH"] is None
+    lo, hi = r["difference_95CI"]
+    assert lo < -0.10 < hi and hi < 0.03  # Newcombe interval, mirrored from the ARR interval
+    assert r["RR"] == pytest.approx(2 / 3)
+
+
+def test_binary_effect_good_event():
+    # Survival 30/100 with treatment vs 20/100 with control: benefit, NNT 10.
+    r = calc.binary_effect(30, 100, 20, 100, undesirable=False)
+    assert r["direction"] == "benefit" and r["NNT"] == pytest.approx(10.0)
+    # Survival lower with treatment: harm, NNH 10.
+    r = calc.binary_effect(20, 100, 30, 100, undesirable=False)
+    assert r["direction"] == "harm" and r["NNH"] == pytest.approx(10.0) and r["NNT"] is None
+
+
+def test_binary_effect_no_difference_and_fragility():
+    r = calc.binary_effect(10, 100, 10, 100)
+    assert r["direction"] == "none" and r["NNT"] is None and r["NNH"] is None
+    assert r["fragility_index"] is None  # not significant
+    sig = calc.binary_effect(5, 200, 25, 200)
+    assert sig["fisher_p"] < 0.05 and sig["fragility_index"] >= 1

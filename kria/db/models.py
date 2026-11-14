@@ -3,7 +3,8 @@
 M1 adds the ingestion tables: topics, versioned queries, articles, ingest runs, and which query
 found which article in which run. M2 adds screening runs and one screening result per article per
 run. M3 adds the national editor's decisions, a log of editor actions (to measure editor time),
-and sent digests. Later milestones add the rest of the model in docs/SPEC.md.
+and sent digests. M4 adds appraisals and the privately uploaded full-text files they use.
+Later milestones add the rest of the model in docs/SPEC.md.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -249,3 +251,56 @@ class Digest(Base):
     provider_id: Mapped[str | None] = mapped_column(String(128))
     editor_minutes: Mapped[float | None] = mapped_column(Float)
     sent_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Appraisal(Base):
+    """An SGEM-style critical appraisal of one article, requested by the editor.
+
+    Every model step's output is stored in `steps` with the model that served it and the prompt
+    version. Statistics are computed in kria/appraisal/calc.py and stored in `stats`. Nothing is
+    public until the editor approves it; then it is served at /a/<public_token>.
+    """
+
+    __tablename__ = "appraisals"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    article_id: Mapped[int] = mapped_column(ForeignKey("articles.id"), index=True)
+    # needs_pdf -> queued -> running -> review -> approved | rejected; failed at any step
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    stage: Mapped[str | None] = mapped_column(String(32))  # current step while running
+    # pmc_xml | oa_pdf | upload | abstract (abstract-only appraisals are labelled limited)
+    source: Mapped[str | None] = mapped_column(String(16))
+    source_url: Mapped[str | None] = mapped_column(Text)
+    limited: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    lookup: Mapped[dict | None] = mapped_column(JsonType)  # what the open-access lookup found
+    steps: Mapped[dict] = mapped_column(JsonType, default=dict)
+    stats: Mapped[list | None] = mapped_column(JsonType)
+    checks: Mapped[dict | None] = mapped_column(JsonType)  # anchor and number checks
+    report: Mapped[dict | None] = mapped_column(JsonType)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    error: Mapped[str | None] = mapped_column(Text)
+    public_token: Mapped[str] = mapped_column(String(64), unique=True)
+    requested_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    approved_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class UploadedFile(Base):
+    """A full-text PDF the requesting editor downloaded with their own access and uploaded.
+
+    Visible only to its uploader (never served back), used for one appraisal, deleted when the
+    appraisal is approved, and in any case after 30 days (the daily job purges expired files).
+    """
+
+    __tablename__ = "uploaded_files"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    appraisal_id: Mapped[int] = mapped_column(ForeignKey("appraisals.id"), index=True)
+    uploader: Mapped[str] = mapped_column(String(64))
+    filename: Mapped[str] = mapped_column(String(255))
+    sha256: Mapped[str] = mapped_column(String(64))
+    size: Mapped[int] = mapped_column(Integer)
+    content: Mapped[bytes] = mapped_column(LargeBinary)
+    uploaded_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+    delete_after: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), index=True)

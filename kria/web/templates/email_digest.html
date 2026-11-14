@@ -56,6 +56,7 @@
           <td style="background:#0b1f3a;border-radius:8px;">
             <a href="https://pubmed.ncbi.nlm.nih.gov/{{ item.pmid }}/" style="display:inline-block;padding:9px 16px;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;">Read on PubMed &rarr;</a>
           </td>
+          {% if item.appraisal_url %}<td style="padding-left:8px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#e11d48;border-radius:8px;"><a href="{{ item.appraisal_url }}" style="display:inline-block;padding:9px 16px;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;">Full appraisal &rarr;</a></td></tr></table></td>{% endif %}
           {% if item.doi %}<td style="padding-left:12px;font-size:13px;"><a href="https://doi.org/{{ item.doi }}" style="color:#475569;">Full text (DOI)</a></td>{% endif %}
         </tr></table>
       </td></tr>
@@ -84,6 +85,7 @@
       <div style="font-size:13px;color:#64748b;margin-top:3px;">{{ item.journal }} &middot; <span dir="rtl">{{ designs.get(item.design, item.design) }}</span>{% if item.doi %} &middot; <a href="https://doi.org/{{ item.doi }}" style="color:#64748b;">DOI</a>{% endif %}</div>
       <div style="font-size:14px;line-height:21px;color:#334155;margin-top:7px;">{{ item.summary }}</div>
       <div style="font-size:13px;line-height:20px;color:#9f1239;margin-top:6px;"><b>Why read it:</b> {{ best_reason(item) }}</div>
+      {% if item.appraisal_url %}<div style="margin-top:8px;"><a href="{{ item.appraisal_url }}" style="font-size:13px;font-weight:bold;color:#e11d48;">Full critical appraisal &rarr;</a></div>{% endif %}
     </div>
   </td></tr>
   {% endfor %}
