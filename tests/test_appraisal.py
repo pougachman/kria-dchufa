@@ -121,12 +121,29 @@ def test_open_access_finds_europe_pmc_xml():
     long_jats = JATS.replace(b"No excess harm.", b"No excess harm. " + b"Detail. " * 400)
 
     def handler(req):
+        if "eutils" in str(req.url):
+            return httpx.Response(500)  # PMC unavailable: Europe PMC is the backup
         assert req.url.path.endswith("/PMC123/fullTextXML")
         return httpx.Response(200, content=long_jats)
 
     ft, log = OpenAccess(http=oa_client(handler)).find("PMC123", DOI)
     assert ft.kind == "pmc_xml" and ft.raw == long_jats and "europepmc.org" in ft.url
-    assert "HTTP 200" in log["europe_pmc"]
+    assert "HTTP 200" in log["europe_pmc"] and "HTTP 500" in log["pmc"]
+
+
+def test_open_access_prefers_ncbi_pmc():
+    long_jats = JATS.replace(b"No excess harm.", b"No excess harm. " + b"Detail. " * 400)
+    seen = []
+
+    def handler(req):
+        seen.append(str(req.url))
+        assert "eutils" in str(req.url) and req.url.params["db"] == "pmc"
+        assert req.url.params["id"] == "10685906" and req.url.params["api_key"] == "k"
+        return httpx.Response(200, content=long_jats)
+
+    ft, log = OpenAccess(http=oa_client(handler), ncbi_api_key="k").find("PMC10685906", DOI)
+    assert ft.kind == "pmc_xml" and "pmc.ncbi.nlm.nih.gov/articles/PMC10685906" in ft.url
+    assert len(seen) == 1 and "europe_pmc" not in log
 
 
 def test_open_access_unpaywall_pdf_and_none():
@@ -569,6 +586,27 @@ def test_abstract_only_path_and_list(web, session):  # noqa: F811
     assert "ניתוח מוגבל" in web.get(f"/editor/appraisals/{a.id}").text
     listing = web.get("/editor/appraisals").text
     assert TITLE in listing and "ממתין לאישורך" in listing
+
+
+def test_retry_lookup_after_a_failed_search(web, session):  # noqa: F811
+    web.post("/editor/appraisals", data={"identifier": "777"})
+    a = session.scalar(select(Appraisal))
+    assert a.status == "needs_pdf"
+    r = web.post(f"/editor/appraisals/{a.id}/action", data={"action": "lookup"})
+    assert "גם הפעם לא נמצא" in r.text
+
+    class Found:
+        def find(self, pmcid, doi):
+            from kria.appraisal.fulltext import FullText
+
+            ft = FullText("pmc_xml", units_from_jats(JATS), url="https://pmc/x", raw=JATS)
+            return ft, {"pmc": "PMC1: HTTP 200"}
+
+    app.state.open_access = Found
+    web.post(f"/editor/appraisals/{a.id}/action", data={"action": "lookup"})
+    session.refresh(a)
+    assert a.source == "pmc_xml" and a.status == "review"  # found, then the run finished
+    assert session.scalar(select(UploadedFile)).filename == "pmc.xml"
 
 
 def test_bad_identifier_and_login_required(web):

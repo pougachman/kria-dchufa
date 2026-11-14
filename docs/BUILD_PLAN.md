@@ -130,8 +130,9 @@ tokens each: about 3.5 USD on Sonnet 5.5 or 7 USD on Opus 5.5. Hosting and email
 
 - Request on /editor/appraisals by PMID or DOI (or "request appraisal" on any article card).
   The article comes from PubMed; the reference is built from the record, never by the model.
-- Full text (`kria/appraisal/fulltext.py`): Europe PMC full-text XML (PMC open-access subset),
-  then an open-access PDF from Unpaywall (needs `UNPAYWALL_EMAIL`), otherwise the editor
+- Full text (`kria/appraisal/fulltext.py`): PMC full-text XML from NCBI efetch (first live
+  test, CLOVERS: Europe PMC returned HTTP 500 while NCBI returned the full text), then Europe
+  PMC's copy, then an open-access PDF from Unpaywall (needs `UNPAYWALL_EMAIL`), otherwise the editor
   downloads the PDF with their own access and uploads it (phone works). The upload must contain
   the article's DOI or most of its title words. Otherwise: abstract only, labelled limited.
 - Files (`uploaded_files`): visible to no one (never served), deleted on approval or rejection,

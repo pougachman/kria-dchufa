@@ -33,7 +33,8 @@
     <button class="rounded-lg bg-blue-700 text-white px-5 py-2 font-semibold hover:bg-blue-800">העלאה והתחלת ניתוח</button>
   </form>
   <p class="text-xs text-slate-500">הקובץ נשמר רק לניתוח הזה, לא מוצג לאף אחד, ונמחק כשתאשר את הניתוח (ולכל המאוחר אחרי 30 יום).</p>
-  <form method="post" action="/editor/appraisals/{{ a.id }}/action" class="pt-2 border-t">
+  <form method="post" action="/editor/appraisals/{{ a.id }}/action" class="pt-2 border-t flex flex-wrap gap-4">
+    <button name="action" value="lookup" class="text-sm text-blue-700 underline hover:text-blue-900">חיפוש חוזר בגישה פתוחה</button>
     <button name="action" value="abstract" class="text-sm text-slate-600 underline hover:text-slate-900">אין גישה? ניתוח מתקציר בלבד (מסומן כמוגבל)</button>
   </form>
   {% if a.lookup %}<details class="text-xs text-slate-500"><summary>מה נבדק בחיפוש הגישה הפתוחה</summary>
