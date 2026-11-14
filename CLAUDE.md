@@ -82,7 +82,9 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
 - [ ] M4 appraisal engine: code done (2026-11-14): /editor/appraisals, open access (Europe PMC,
       Unpaywall) or uploaded PDF, Opus 5.5 extract/report/Guest Skeptic/reconcile, stats in
       calc.py, quote and number checks, approve -> PDF deleted and public /a/<token>, digest
-      link. Needs Yoav's approval of eval/sgem_benchmark/benchmark.yaml and the 10 runs
+      link. First live run (CLOVERS) worked but was too long (5,500 words, 1.02 USD); prompts
+      v2 (one page, about 600 words, at most 1 USD, one appraisal a month). Needs a v2 run and
+      Yoav's decision on the 10-article benchmark (eval/sgem_benchmark/benchmark.yaml)
 - [ ] M5 programs and roles
 - [ ] M6 reading lists and questions
 - [ ] M7 shared library

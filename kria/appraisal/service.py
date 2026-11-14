@@ -139,8 +139,26 @@ def approve(session: Session, appraisal: Appraisal) -> int:
         raise ValueError("אפשר לאשר רק ניתוח שהושלם וממתין לבדיקה")
     deleted = engine.delete_files(session, appraisal.id)
     appraisal.status, appraisal.approved_at = "approved", engine.now()
+    # An earlier approved version of the same article is replaced; its link keeps working and
+    # points to this one.
+    for old in session.scalars(
+        select(Appraisal).where(
+            Appraisal.article_id == appraisal.article_id,
+            Appraisal.status == "approved",
+            Appraisal.id != appraisal.id,
+        )
+    ):
+        old.status = "superseded"
     session.commit()
     return deleted
+
+
+def latest_approved(session: Session, article_id: int) -> Appraisal | None:
+    return session.scalar(
+        select(Appraisal)
+        .where(Appraisal.article_id == article_id, Appraisal.status == "approved")
+        .order_by(Appraisal.id.desc())
+    )
 
 
 def reject(session: Session, appraisal: Appraisal) -> None:

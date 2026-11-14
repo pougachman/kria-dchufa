@@ -31,14 +31,17 @@ from kria.db.models import Appraisal, Article, UploadedFile
 
 ROOT = Path(__file__).resolve().parents[2]
 PROMPTS = ROOT / "prompts"
+# v2 (Yoav, 2026-11-14, after the first live appraisal: about 5,500 words and 1.02 USD):
+# one page, about 600 words, word limits per section, no separate quality checklist.
 PROMPT_VERSIONS = {
-    "extract": "appraisal_extract.v1",
-    "report": "appraisal_report.v1",
-    "skeptic": "appraisal_skeptic.v1",
-    "reconcile": "appraisal_reconcile.v1",
+    "extract": "appraisal_extract.v2",
+    "report": "appraisal_report.v2",
+    "skeptic": "appraisal_skeptic.v2",
+    "reconcile": "appraisal_reconcile.v2",
 }
 MODEL = "claude-opus-5-5"
-EFFORT = "high"
+# Extraction is copying, not judgement: medium effort. Appraisal steps think harder.
+EFFORT = {"extract": "medium", "report": "high", "skeptic": "high", "reconcile": "high"}
 MAX_TOKENS = 32000
 FILE_DAYS = 30
 
@@ -128,7 +131,7 @@ def extract_schema() -> dict:
     )
 
 
-def report_schema(final: bool = False) -> dict:
+def report_schema(final: bool = False, checklist: bool = False) -> dict:
     domain = _obj(
         {
             "domain": S,
@@ -149,16 +152,6 @@ def report_schema(final: bool = False) -> dict:
         "risk_of_bias": _obj(
             {"tool": S, "domains": {"type": "array", "items": domain}, "overall": S}
         ),
-        "quality_checklist": {
-            "type": "array",
-            "items": _obj(
-                {
-                    "item": S,
-                    "answer": {"type": "string", "enum": ["yes", "no", "unclear", "n/a"]},
-                    "comment": S,
-                }
-            ),
-        },
         "key_results": S,
         "talk_nerdy": {
             "type": "array",
@@ -177,6 +170,17 @@ def report_schema(final: bool = False) -> dict:
         "israeli_ed_applicability": S,
         "journal_club_questions": {"type": "array", "items": S},
     }
+    if checklist:  # prompt v1 only
+        props["quality_checklist"] = {
+            "type": "array",
+            "items": _obj(
+                {
+                    "item": S,
+                    "answer": {"type": "string", "enum": ["yes", "no", "unclear", "n/a"]},
+                    "comment": S,
+                }
+            ),
+        }
     if final:
         props["disagreements"] = {
             "type": "array",
@@ -464,6 +468,7 @@ def run(session: Session, appraisal_id: int, llm) -> Appraisal:
                 system=load_prompt(name, ft.kind),
                 blocks=blocks + [{"type": "text", "text": extra}],
                 schema=schema,
+                effort=EFFORT[name],
             )
             appraisal.steps = {
                 **appraisal.steps,
@@ -531,13 +536,15 @@ class Claude:
         self.model = model
         self.pricing = yaml.safe_load((ROOT / "data" / "pricing.yaml").read_text())
 
-    def call(self, system: str, blocks: list[dict], schema: dict) -> tuple[dict, dict]:
+    def call(
+        self, system: str, blocks: list[dict], schema: dict, effort: str = "high"
+    ) -> tuple[dict, dict]:
         with self.client.beta.messages.stream(
             model=self.model,
             max_tokens=MAX_TOKENS,
             system=system,
             messages=[{"role": "user", "content": blocks}],
-            output_config={"effort": EFFORT, "format": {"type": "json_schema", "schema": schema}},
+            output_config={"effort": effort, "format": {"type": "json_schema", "schema": schema}},
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",
         ) as stream:
@@ -558,6 +565,7 @@ class Claude:
         }
         return json.loads(text), {
             "model": msg.model,
+            "effort": effort,
             "stop_reason": msg.stop_reason,
             "usage": usage,
             "cost_usd": self.cost(msg.model, usage),
