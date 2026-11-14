@@ -25,6 +25,7 @@
       <p class="text-amber-800 mt-2">שליחת מייל עוד לא הוגדרה: חסרים ב-Railway המשתנים <span class="en font-mono">RESEND_API_KEY</span> ו-<span class="en font-mono">DIGEST_RECIPIENTS</span>.</p>
     {% endif %}
   </div>
+  {% if share %}{% set share_id = "digest" %}{% set share_hint = "ההודעה כוללת את שלושת המובילים וקישור לעמוד עם כל המאמרים של החודש (" ~ share.page_url ~ "). \"פתח בוואטסאפ\" פותח את וואטסאפ עם ההודעה מוכנה: בוחרים את הקבוצה ושולחים." %}{% include "editor_share.html" %}{% endif %}
   <iframe srcdoc="{{ email_html }}" title="תצוגה מקדימה של המייל"
           class="w-full bg-white rounded-xl shadow-sm" style="height: 70vh"></iframe>
 {% endif %}

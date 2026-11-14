@@ -212,6 +212,14 @@ def digest_preview(
     _valid(month)
     digest = dg.content(session, month)
     html = dg.render(month, digest, settings.public_url)[1] if digest["count"] else None
+    share = None
+    if digest["count"]:
+        from kria.pipeline import share as sh
+
+        page = sh.month_page(session, month)
+        page_url = f"{settings.public_url}/d/{page.public_token}"
+        text = sh.digest_message(month, digest, page_url)
+        share = {"text": text, "link": sh.whatsapp_link(text), "page_url": page_url}
     history = session.scalars(
         select(Digest).where(Digest.month == month).order_by(Digest.id.desc())
     ).all()
@@ -227,6 +235,7 @@ def digest_preview(
             "recipients": settings.recipients,
             "mail_ready": bool(settings.resend_api_key and settings.recipients),
             "history": history,
+            "share": share,
             "sent": sent,
             "error": error,
         },

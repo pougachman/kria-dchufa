@@ -54,6 +54,12 @@ Defaults are in effect until he decides; record each answer here and in the live
   of 10 articles, run the 5 whose full text comes in automatically (CLOVERS, PREVENT, SALT-ED,
   CRASH-3, HALT-IT; about 3 USD) and compare each with its SGEM episode. Done 2026-11-14: all 5
   ran on Railway and Yoav reviewed them against SGEM ("good"). M4 done.
+- Distribution to residents (Yoav, 2026-11-14): through the program's WhatsApp group. The
+  editor screen prepares the message and the editor sends it ("open in WhatsApp" or "copy");
+  no automatic posting (WhatsApp's business API cannot post to groups; unofficial bots break
+  its terms). Monthly message: the 3 top articles with "why read it" and a link, plus a link
+  to the month's public digest page (/d/<token>, approved articles only). The monthly
+  appraisal goes in a separate message: title, bottom line, link to /a/<token>.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
   received the October digest as a forward from Yoav; feedback pending. Resend domain
   verified on 2026-11-14: the subdomain kria.drpougach.com (DNS at Cloudflare, domain bought

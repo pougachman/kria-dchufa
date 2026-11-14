@@ -1,0 +1,23 @@
+{# Ready-to-send WhatsApp message: share = {"text", "link"}. #}
+<section class="bg-white rounded-xl shadow-sm p-5 mb-5">
+  <h2 class="text-lg font-semibold">שליחה לקבוצת הוואטסאפ</h2>
+  <p class="text-sm text-slate-600 mt-1">{{ share_hint }}</p>
+  <textarea id="wa-text-{{ share_id }}" readonly rows="10"
+            class="mt-3 w-full rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm leading-relaxed">{{ share.text }}</textarea>
+  <div class="mt-3 flex flex-wrap gap-3">
+    <a href="{{ share.link }}" target="_blank" rel="noopener"
+       class="rounded-lg bg-emerald-600 text-white px-5 py-2 font-semibold hover:bg-emerald-700">פתח בוואטסאפ</a>
+    <button type="button" data-copy="wa-text-{{ share_id }}"
+            class="rounded-lg border border-slate-300 px-5 py-2 hover:bg-slate-50">העתק</button>
+    <span id="wa-copied-{{ share_id }}" class="hidden self-center text-sm text-emerald-700">הועתק</span>
+  </div>
+</section>
+<script>
+document.querySelectorAll('[data-copy]').forEach(function (b) {
+  b.onclick = function () {
+    var id = b.getAttribute('data-copy'), t = document.getElementById(id);
+    var done = function () { var m = document.getElementById(id.replace('text', 'copied')); m.classList.remove('hidden'); };
+    if (navigator.clipboard) { navigator.clipboard.writeText(t.value).then(done); } else { t.select(); document.execCommand('copy'); done(); }
+  };
+});
+</script>
