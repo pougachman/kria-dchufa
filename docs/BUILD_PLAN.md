@@ -8,9 +8,10 @@ Status (2026-11-12): M0 deployed on Railway (https://kria-dchufa-production.up.r
 M1 and M2 done: the daily job (`monthly-job`, a Railway cron service at 05:00 UTC) ingested
 October 2026 on Railway (3,451 records, 2,398 kept, identical to the local runs) and screened
 all 2,398 with Haiku 5.5 in one batch: 949 relevant, 291 scored 4-5, 14.3 minutes, 0.30 USD.
-M3 code done (2026-11-12): editor screen at /editor, digest email through Resend. Done when
-October's digest is approved and emailed from Railway. Then: the M2 sensitivity check (needs
-the gold standard).
+M3 done (2026-11-12): October's digest was approved on /editor (21 articles, 21 editor
+minutes measured, without reading the articles; Yoav expects about 45 in a real month, well
+under the 90-minute target) and emailed through Resend. Next: M4 (on-demand appraisal), and
+the M2 sensitivity check when the gold standard is ready.
 M4 does not depend on the pipeline and can be built in parallel with M1-M3.
 
 | Milestone | What is built | Done when | Depends on |
@@ -39,6 +40,10 @@ Defaults are in effect until he decides; record each answer here and in the live
 - Size of the national digest per month: no fixed number; the digest is exactly what the
   editor approves (Yoav, 2026-11-12). Revisit after a few months.
 - Editor access until M5: one editor password, `EDITOR_PASSWORD` (Yoav, 2026-11-12).
+- Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
+  received the October digest as a forward from Yoav; feedback pending. Domain verification
+  in Resend (for sending to other directors directly) is deferred until more directors join;
+  plan: verify the subdomain kria.drpougach.com (domain bought through Apple iCloud+).
 - Digest email: through Resend (Yoav, 2026-11-12). Pilot recipients: Yoav only. Until a domain
   is verified in Resend, the sender is onboarding@resend.dev, which can send only to the
   Resend account's own address.
