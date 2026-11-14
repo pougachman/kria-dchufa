@@ -10,6 +10,7 @@ status: reduced
 # (already run): CLOVERS, PREVENT, SALT-ED, CRASH-3, HALT-IT. He compares each with its SGEM
 # episode (bottom line and risk-of-bias judgement). The upload-only articles are not run now.
 run: [CLOVERS, PREVENT, SALT-ED, CRASH-3, HALT-IT]
+result: 2026-11-14, all 5 appraised on Railway and reviewed by Yoav against SGEM - good
 articles:
   - {name: PARAMEDIC2, pmid: "30021076", doi: 10.1056/NEJMoa1806842, journal: N Engl J Med, year: 2018, design: rct, full_text: upload}
   - {name: AIRWAYS-2, pmid: "30167701", doi: 10.1001/jama.2018.11597, journal: JAMA, year: 2018, design: rct, full_text: upload}
