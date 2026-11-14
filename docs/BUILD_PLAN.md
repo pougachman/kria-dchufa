@@ -44,6 +44,12 @@ Defaults are in effect until he decides; record each answer here and in the live
   about 7 USD for 10 a month); an approved appraisal gets its own page at an unguessable link
   (/a/<token>) and the digest links to it, until the shared library (M7) exists; the benchmark
   list is proposed by Claude in `eval/sgem_benchmark/benchmark.yaml` and awaits Yoav's approval.
+- Appraisal format and volume (Yoav, 2026-11-14, after the first live appraisal, CLOVERS:
+  about 5,500 words and 1.02 USD, "far too long and too expensive"): one page, about 600 words;
+  at most 1 USD per appraisal, still on Opus; one article a month gets a full appraisal.
+  Prompts v2 set word limits per section and drop the separate quality checklist (risk of bias
+  covers it); extraction runs at medium effort. Open: whether the 10-article benchmark run
+  (a one-time test, at most 10 USD) is still wanted given one appraisal a month.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
   received the October digest as a forward from Yoav; feedback pending. Domain verification
   in Resend (for sending to other directors directly) is deferred until more directors join;
@@ -147,6 +153,8 @@ tokens each: about 3.5 USD on Sonnet 5.5 or 7 USD on Opus 5.5. Hosting and email
   (normalised text); numbers in the report found neither in the article nor in the computed
   statistics are listed. The case vignette and the reference are not number-checked.
 - Review page: status (auto-refresh while running), checks, approve (deletes the file and
-  publishes /a/<token>), re-run, reject. The digest shows "Full appraisal" for approved ones.
+  publishes /a/<token>), re-run, reject, and "new version" for an approved appraisal (the old
+  link keeps working and points to the new version once it is approved). On the public page,
+  quotes are behind a "source" toggle and the full Guest Skeptic list is editor-only. The digest shows "Full appraisal" for approved ones.
 - Done when (unchanged): the 10 benchmark articles are appraised from open access or an
   uploaded PDF, every number anchored to a page, and the PDF deleted after approval.

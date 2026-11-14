@@ -15,6 +15,7 @@
     </div>
   </header>
   <main class="max-w-3xl mx-auto px-4 py-6">
+    {% if newer %}<p class="rounded-lg bg-amber-100 text-amber-900 p-4 mb-4">קיימת גרסה מעודכנת של הניתוח הזה: <a class="underline" href="/a/{{ newer.public_token }}">לגרסה החדשה</a>.</p>{% endif %}
     <h1 class="en text-2xl font-bold leading-snug">{{ article.title }}</h1>
     <p class="en text-sm text-slate-500 mt-1 mb-5">{{ article.journal_ta }} · <a class="hover:underline" href="https://pubmed.ncbi.nlm.nih.gov/{{ article.pmid }}/">PubMed</a>{% if article.doi %} · <a class="hover:underline" href="https://doi.org/{{ article.doi }}">DOI</a>{% endif %}</p>
     {% include "editor_appraisal_report.html" %}

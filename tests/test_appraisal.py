@@ -311,9 +311,9 @@ class FakeLLM:
     def __init__(self):
         self.calls = []
 
-    def call(self, system, blocks, schema):
+    def call(self, system, blocks, schema, effort="high"):
         props = schema["properties"]
-        self.calls.append((system, blocks, schema))
+        self.calls.append((system, blocks, schema, effort))
         if "design" in props:
             out = extraction()
         elif "issues" in props:
@@ -396,9 +396,12 @@ def test_engine_runs_all_steps_with_checks(session):  # noqa: F811
     assert {q["anchor"] for q in bad} == {"p. 2"}  # the funding quote cites the wrong page
     assert c["quotes_verified"] == c["quotes_total"] - len(bad) >= 3
     # the PDF goes to the model as a cached document block, anchors are pages
-    system, blocks, _ = llm.calls[0]
+    system, blocks, _, effort = llm.calls[0]
     assert blocks[0]["type"] == "document" and blocks[0]["cache_control"]
     assert '"p. N"' in system and "{{" not in system
+    assert [c[3] for c in llm.calls] == ["medium", "high", "high", "high"]
+    assert "600 words" in llm.calls[1][0]  # the one-page report prompt (v2)
+    assert "quality_checklist" not in llm.calls[1][2]["properties"]
 
 
 def test_engine_abstract_only_is_limited_and_failure_is_recorded(session):  # noqa: F811
@@ -572,9 +575,36 @@ def test_request_upload_review_approve_publish(web, session):  # noqa: F811
     public = web.get(f"/a/{a.public_token}")
     assert public.status_code == 200 and "Early fluids may reduce death." in public.text
     assert "בדיקות קוד" not in public.text  # the checks panel is editor-only
+    assert "Guest Skeptic" not in public.text  # the full skeptic list is editor-only
+    assert "Remaining Disagreements" in public.text
     # asking again for the same article opens the existing appraisal
     r = web.post("/editor/appraisals", data={"identifier": "777"}, follow_redirects=False)
     assert r.headers["location"] == f"/editor/appraisals/{a.id}"
+
+
+def test_new_version_supersedes_and_old_link_points_to_it(web, session):  # noqa: F811
+    web.post("/editor/appraisals", data={"identifier": "777"})
+    first = session.scalar(select(Appraisal))
+    web.post(f"/editor/appraisals/{first.id}/action", data={"action": "abstract"})
+    web.post(f"/editor/appraisals/{first.id}/action", data={"action": "approve"})
+    r = web.post(
+        f"/editor/appraisals/{first.id}/action",
+        data={"action": "new_version"},
+        follow_redirects=False,
+    )
+    second_id = int(r.headers["location"].rsplit("/", 1)[1])
+    assert second_id != first.id
+    second = session.get(Appraisal, second_id)
+    assert second.status == "needs_pdf"
+    web.post(f"/editor/appraisals/{second.id}/action", data={"action": "abstract"})
+    web.post(f"/editor/appraisals/{second.id}/action", data={"action": "approve"})
+    session.refresh(first)
+    assert first.status == "superseded" and second.status == "approved"
+    old = web.get(f"/a/{first.public_token}")
+    assert old.status_code == 200 and f"/a/{second.public_token}" in old.text
+    # a new request for the article opens the current version
+    r = web.post("/editor/appraisals", data={"identifier": "777"}, follow_redirects=False)
+    assert r.headers["location"] == f"/editor/appraisals/{second.id}"
 
 
 def test_abstract_only_path_and_list(web, session):  # noqa: F811

@@ -41,6 +41,7 @@ STATUS_HE = {
     "approved": "אושר",
     "rejected": "נדחה",
     "failed": "נכשל",
+    "superseded": "הוחלף בגרסה חדשה",
 }
 SOURCE_HE = {
     "pmc_xml": "טקסט מלא, גישה פתוחה (PMC)",
@@ -163,7 +164,9 @@ def appraisal_request(
         return RedirectResponse(f"/editor/appraisals?error={quote(msg)}", status_code=303)
     existing = session.scalar(
         select(Appraisal)
-        .where(Appraisal.article_id == article.id, Appraisal.status != "rejected")
+        .where(
+            Appraisal.article_id == article.id, Appraisal.status.not_in(("rejected", "superseded"))
+        )
         .order_by(Appraisal.id.desc())
     )
     if existing is not None:
@@ -264,6 +267,14 @@ def appraisal_action(
             a.status = "queued"
             session.commit()
             _start(request, background, a)
+        elif action == "new_version":
+            if a.status not in ("approved", "superseded"):
+                raise ValueError("גרסה חדשה נוצרת מניתוח שכבר אושר")
+            article = session.get(Article, a.article_id)
+            new = service.request(session, article, _oa(request))
+            if new.status == "queued":
+                _start(request, background, new)
+            return RedirectResponse(f"/editor/appraisals/{new.id}", status_code=303)
         elif action == "approve":
             service.approve(session, a)
         elif action == "reject":
@@ -288,9 +299,10 @@ def public_appraisal(
     session: Session = Depends(get_session),  # noqa: B008
 ):
     a = session.scalar(select(Appraisal).where(Appraisal.public_token == token))
-    if a is None or a.status != "approved":
+    if a is None or a.status not in ("approved", "superseded"):
         raise HTTPException(status_code=404)
     article = session.get(Article, a.article_id)
+    newer = service.latest_approved(session, a.article_id) if a.status == "superseded" else None
     return templates.TemplateResponse(
         request,
         "appraisal_public.html",
@@ -301,5 +313,6 @@ def public_appraisal(
             "extraction": (a.steps or {}).get("extract", {}).get("output"),
             "skeptic": (a.steps or {}).get("skeptic", {}).get("output"),
             "editor_view": False,
+            "newer": newer,
         },
     )

@@ -1,5 +1,12 @@
 {# The appraisal report, shared by the editor page and the public page. English content. #}
 {% set r = a.report %}
+{% macro evidence(quote, anchor) -%}
+  {%- if quote -%}
+    {%- if editor_view -%}<br><span class="text-sm text-slate-500 italic">"{{ quote }}"</span> <span class="text-sm text-slate-400">[{{ anchor }}]</span>
+    {%- else -%}<details class="inline"><summary class="inline cursor-pointer text-xs text-slate-400">source</summary> <span class="text-sm text-slate-500 italic">"{{ quote }}"</span> <span class="text-sm text-slate-400">[{{ anchor }}]</span></details>
+    {%- endif -%}
+  {%- endif -%}
+{%- endmacro %}
 {% set judge_cls = {"low": "bg-emerald-100 text-emerald-800", "some concerns": "bg-amber-100 text-amber-800", "high": "bg-red-100 text-red-800"} %}
 <article class="bg-white rounded-xl shadow-sm overflow-hidden">
   {% if a.limited %}
@@ -38,6 +45,7 @@
 
     <section><h3 class="font-bold text-slate-900 mb-1">Authors' Conclusions</h3><p>{{ r.authors_conclusions }}</p></section>
 
+    {% if r.quality_checklist %}
     <section><h3 class="font-bold text-slate-900 mb-2">Quality Checklist</h3>
       <ul class="text-sm divide-y">
       {% for q in r.quality_checklist %}
@@ -46,13 +54,13 @@
       {% endfor %}
       </ul>
     </section>
+    {% endif %}
 
     <section><h3 class="font-bold text-slate-900 mb-2">Risk of Bias ({{ r.risk_of_bias.tool }})</h3>
       <ul class="space-y-2 text-sm">
       {% for d in r.risk_of_bias.domains %}
         <li><span class="rounded-full px-2 py-0.5 text-xs font-semibold {{ judge_cls.get(d.judgement, 'bg-slate-100 text-slate-700') }}">{{ d.judgement }}</span>
-          <span class="font-semibold">{{ d.domain }}.</span> {{ d.reason }}
-          {% if d.quote %}<br><span class="text-slate-500 italic">"{{ d.quote }}"</span> <span class="text-slate-400">[{{ d.anchor }}]</span>{% endif %}</li>
+          <span class="font-semibold">{{ d.domain }}.</span> {{ d.reason }} {{ evidence(d.quote, d.anchor) }}</li>
       {% endfor %}
       </ul>
       <p class="text-sm mt-2"><span class="font-semibold">Overall:</span> {{ r.risk_of_bias.overall }}</p>
@@ -95,7 +103,7 @@
     <section><h3 class="font-bold text-slate-900 mb-2">Talk Nerdy</h3>
       <ol class="list-decimal pl-5 space-y-2">
       {% for t in r.talk_nerdy %}
-        <li>{{ t.point }}{% if t.quote %}<br><span class="text-sm text-slate-500 italic">"{{ t.quote }}"</span> <span class="text-sm text-slate-400">[{{ t.anchor }}]</span>{% endif %}</li>
+        <li>{{ t.point }} {{ evidence(t.quote, t.anchor) }}</li>
       {% endfor %}
       </ol>
     </section>
@@ -111,7 +119,7 @@
       <ol class="list-decimal pl-5 space-y-1">{% for q in r.journal_club_questions %}<li>{{ q }}</li>{% endfor %}</ol>
     </section>
 
-    {% if skeptic and skeptic.issues %}
+    {% if editor_view and skeptic and skeptic.issues %}
     <section><h3 class="font-bold text-slate-900 mb-2">Guest Skeptic</h3>
       <ul class="space-y-2 text-sm">
       {% for i in skeptic.issues %}
