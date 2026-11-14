@@ -52,8 +52,8 @@ Defaults are in effect until he decides; record each answer here and in the live
   words (from 5,552); most of the excess was PICO from the extraction step, so extraction v3
   limits each PICO element to 20 words. Benchmark (Yoav, 2026-11-14): instead
   of 10 articles, run the 5 whose full text comes in automatically (CLOVERS, PREVENT, SALT-ED,
-  CRASH-3, HALT-IT; about 3 USD) and compare each with its SGEM episode. M4 is done when these
-  5 are approved with every quote checked.
+  CRASH-3, HALT-IT; about 3 USD) and compare each with its SGEM episode. Done 2026-11-14: all 5
+  ran on Railway and Yoav reviewed them against SGEM ("good"). M4 done.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
   received the October digest as a forward from Yoav; feedback pending. Domain verification
   in Resend (for sending to other directors directly) is deferred until more directors join;
