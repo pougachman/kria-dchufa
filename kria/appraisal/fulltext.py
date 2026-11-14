@@ -1,7 +1,8 @@
 """Full text for appraisal, only through authorized routes (CLAUDE.md rule 6).
 
-1. Open access, automatic: Europe PMC full-text XML (the PMC open-access subset), then an
-   open-access PDF that Unpaywall points to.
+1. Open access, automatic: the PMC full-text XML from NCBI (the article's free PMC copy,
+   including author manuscripts), then Europe PMC's copy of it, then an open-access PDF that
+   Unpaywall points to.
 2. Otherwise the requesting editor downloads the PDF with their own access and uploads it.
    The upload is checked against the article (DOI or title) before it is used.
 3. Otherwise an abstract-only appraisal, labelled limited.
@@ -22,6 +23,7 @@ from dataclasses import dataclass, field
 import httpx
 
 EUROPE_PMC = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+NCBI_EFETCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
 UNPAYWALL = "https://api.unpaywall.org/v2"
 MAX_PDF_BYTES = 40 * 1024 * 1024
 USER_AGENT = "kria-dchufa/1.0 (literature appraisal for EM residency programs)"
@@ -128,8 +130,14 @@ def matches_article(text: str, doi: str | None, title: str) -> tuple[bool, str]:
 class OpenAccess:
     """Looks for a legal open-access full text. Tests pass an httpx client with a mock transport."""
 
-    def __init__(self, unpaywall_email: str | None = None, http: httpx.Client | None = None):
+    def __init__(
+        self,
+        unpaywall_email: str | None = None,
+        http: httpx.Client | None = None,
+        ncbi_api_key: str | None = None,
+    ):
         self.email = unpaywall_email
+        self.ncbi_api_key = ncbi_api_key
         self.http = http or httpx.Client(
             timeout=60, follow_redirects=True, headers={"User-Agent": USER_AGENT}
         )
@@ -140,9 +148,17 @@ class OpenAccess:
         if not pmcid and doi:
             pmcid = self._pmcid_for_doi(doi, log)
         if pmcid:
-            r = self.http.get(f"{EUROPE_PMC}/{pmcid}/fullTextXML")
-            log["europe_pmc"] = f"{pmcid}: HTTP {r.status_code}"
-            if r.status_code == 200 and r.content.strip().startswith(b"<"):
+            found = self._ncbi_pmc(pmcid, log)
+            if found:
+                return found, log
+            try:
+                r = self.http.get(f"{EUROPE_PMC}/{pmcid}/fullTextXML")
+            except httpx.HTTPError as exc:
+                r = None
+                log["europe_pmc"] = f"{pmcid}: {exc.__class__.__name__}"
+            else:
+                log["europe_pmc"] = f"{pmcid}: HTTP {r.status_code}"
+            if r is not None and r.status_code == 200 and r.content.strip().startswith(b"<"):
                 units = units_from_jats(r.content)
                 if sum(len(u.text) for u in units) > 2000:
                     url = f"https://europepmc.org/article/PMC/{pmcid}"
@@ -155,6 +171,27 @@ class OpenAccess:
         elif doi:
             log["unpaywall"] = "skipped: UNPAYWALL_EMAIL is not set"
         return None, log
+
+    def _ncbi_pmc(self, pmcid: str, log: dict) -> FullText | None:
+        params = {"db": "pmc", "id": pmcid.upper().removeprefix("PMC"), "tool": "kria-dchufa"}
+        if self.ncbi_api_key:
+            params["api_key"] = self.ncbi_api_key
+        try:
+            r = self.http.get(NCBI_EFETCH, params=params)
+        except httpx.HTTPError as exc:
+            log["pmc"] = f"{pmcid}: {exc.__class__.__name__}"
+            return None
+        log["pmc"] = f"{pmcid}: HTTP {r.status_code}"
+        if r.status_code != 200 or b"<body" not in r.content:
+            if r.status_code == 200:
+                log["pmc"] += " (no full text in XML)"
+            return None
+        units = units_from_jats(r.content)
+        if sum(len(u.text) for u in units) < 2000:
+            log["pmc"] += " (body too short)"
+            return None
+        url = f"https://pmc.ncbi.nlm.nih.gov/articles/{pmcid.upper()}/"
+        return FullText("pmc_xml", units, url=url, raw=r.content)
 
     def _pmcid_for_doi(self, doi: str, log: dict) -> str | None:
         r = self.http.get(

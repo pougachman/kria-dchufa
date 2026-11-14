@@ -43,7 +43,7 @@ STATUS_HE = {
     "failed": "נכשל",
 }
 SOURCE_HE = {
-    "pmc_xml": "טקסט מלא, גישה פתוחה (Europe PMC)",
+    "pmc_xml": "טקסט מלא, גישה פתוחה (PMC)",
     "oa_pdf": "PDF בגישה פתוחה (Unpaywall)",
     "upload": "PDF שהעלית",
     "abstract": "תקציר בלבד (ניתוח מוגבל)",
@@ -83,7 +83,11 @@ def _pubmed():
 
 def _oa(request: Request):
     factory = getattr(request.app.state, "open_access", None)
-    return factory() if factory else OpenAccess(settings.unpaywall_email)
+    return (
+        factory()
+        if factory
+        else OpenAccess(settings.unpaywall_email, ncbi_api_key=settings.ncbi_api_key)
+    )
 
 
 def _eu(request: Request):
@@ -246,7 +250,12 @@ def appraisal_action(
         return _to_login(request)
     a = _get(session, appraisal_id)
     try:
-        if action == "abstract":
+        if action == "lookup":
+            if service.retry_lookup(session, a, _oa(request)):
+                _start(request, background, a)
+            else:
+                raise ValueError("גם הפעם לא נמצא טקסט מלא בגישה פתוחה")
+        elif action == "abstract":
             service.use_abstract(session, a)
             _start(request, background, a)
         elif action == "rerun":

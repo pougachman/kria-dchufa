@@ -73,6 +73,22 @@ def request(session: Session, article: Article, oa: OpenAccess) -> Appraisal:
     )
     session.add(appraisal)
     session.flush()
+    _lookup(session, appraisal, article, oa)
+    session.commit()
+    return appraisal
+
+
+def retry_lookup(session: Session, appraisal: Appraisal, oa: OpenAccess) -> bool:
+    """Search for an open-access full text again (for an appraisal still waiting for one)."""
+    if appraisal.status != "needs_pdf":
+        raise ValueError("החיפוש החוזר מיועד לניתוח שממתין לטקסט מלא")
+    article = session.get(Article, appraisal.article_id)
+    _lookup(session, appraisal, article, oa)
+    session.commit()
+    return appraisal.status == "queued"
+
+
+def _lookup(session: Session, appraisal: Appraisal, article: Article, oa: OpenAccess) -> None:
     try:
         ft, log = oa.find(article.pmcid, article.doi)
     except Exception as exc:  # a lookup failure must not block a manual upload
@@ -85,8 +101,6 @@ def request(session: Session, article: Article, oa: OpenAccess) -> Appraisal:
             content, name = ft.pdf, "open-access.pdf"
         engine.store_file(session, appraisal, content, name, uploader="open-access")
         appraisal.source, appraisal.source_url, appraisal.status = ft.kind, ft.url, "queued"
-    session.commit()
-    return appraisal
 
 
 def attach_upload(

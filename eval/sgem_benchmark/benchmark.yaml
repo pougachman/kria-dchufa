@@ -2,19 +2,20 @@
 # awaiting Yoav's approval. PMIDs, DOIs and PMC ids were checked against PubMed on that date.
 # For each article Yoav confirms the SGEM episode; the engine's checklist answers and bottom
 # line are compared with it, and every number's page anchor is checked by hand.
-# full_text: "pmc" = open access in PMC (automatic); "upload" = needs a PDF from Yoav's access.
+# full_text (checked live 2026-11-14): "pmc" = full-text XML from PMC (automatic);
+# "upload" = no machine-readable free copy (publisher restriction): needs a PDF from Yoav.
 version: 1
 status: proposed
 articles:
   - {name: PARAMEDIC2, pmid: "30021076", doi: 10.1056/NEJMoa1806842, journal: N Engl J Med, year: 2018, design: rct, full_text: upload}
-  - {name: AIRWAYS-2, pmid: "30167701", doi: 10.1001/jama.2018.11597, journal: JAMA, year: 2018, design: rct, full_text: pmc}
-  - {name: BOUGIE, pmid: "29800096", doi: 10.1001/jama.2018.6496, journal: JAMA, year: 2018, design: rct, full_text: pmc}
+  - {name: AIRWAYS-2, pmid: "30167701", doi: 10.1001/jama.2018.11597, journal: JAMA, year: 2018, design: rct, full_text: upload}
+  - {name: BOUGIE, pmid: "29800096", doi: 10.1001/jama.2018.6496, journal: JAMA, year: 2018, design: rct, full_text: upload}
   - {name: PREVENT, pmid: "30779528", doi: 10.1056/NEJMoa1812405, journal: N Engl J Med, year: 2019, design: rct, full_text: pmc}
   - {name: CLOVERS, pmid: "36688507", doi: 10.1056/NEJMoa2212663, journal: N Engl J Med, year: 2023, design: rct, full_text: pmc}
   - {name: SALT-ED, pmid: "29485926", doi: 10.1056/NEJMoa1711586, journal: N Engl J Med, year: 2018, design: rct, full_text: pmc}
   - {name: CRASH-3, pmid: "31623894", doi: 10.1016/S0140-6736(19)32233-0, journal: Lancet, year: 2019, design: rct, full_text: pmc}
   - {name: HALT-IT, pmid: "32563378", doi: 10.1016/S0140-6736(20)30848-5, journal: Lancet, year: 2020, design: rct, full_text: pmc}
   - {name: PEGeD, pmid: "31774957", doi: 10.1056/NEJMoa1909159, journal: N Engl J Med, year: 2019, design: diagnostic_accuracy, full_text: upload}
-  - {name: PECARN febrile infant rule, pmid: "30776077", doi: 10.1001/jamapediatrics.2018.5501, journal: JAMA Pediatr, year: 2019, design: prediction_model, full_text: pmc}
+  - {name: PECARN febrile infant rule, pmid: "30776077", doi: 10.1001/jamapediatrics.2018.5501, journal: JAMA Pediatr, year: 2019, design: prediction_model, full_text: upload}
 alternates:
   - {name: TTM2, pmid: "34133859", doi: 10.1056/NEJMoa2100591, journal: N Engl J Med, year: 2021, design: rct, full_text: upload}
