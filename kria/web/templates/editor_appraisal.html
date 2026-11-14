@@ -100,6 +100,7 @@
     </form>
   </section>
   {% endif %}
+  {% if share %}{% set share_id = "appraisal" %}{% set share_hint = "שם המחקר, ה-Bottom line וקישור לניתוח המלא. \"פתח בוואטסאפ\" פותח את וואטסאפ עם ההודעה מוכנה: בוחרים את הקבוצה ושולחים." %}{% include "editor_share.html" %}{% endif %}
   {% if a.status == "superseded" %}
   <section class="bg-slate-100 rounded-xl p-5 mb-5"><p>הניתוח הזה הוחלף בגרסה חדשה יותר. הקישור הישן מפנה אליה.</p></section>
   {% endif %}

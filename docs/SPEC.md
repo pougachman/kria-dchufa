@@ -108,6 +108,12 @@ Later, if a library agrees: Elsevier and Wiley TDM APIs could replace most manua
 Never: scraping the library portal, automated or bulk downloading, or using anyone's
 credentials.
 
+## Distribution (pilot)
+
+Residents get the approved monthly digest and the monthly appraisal in the program's WhatsApp
+group, as ready-made messages that the editor or curator sends from the editor screen (see
+`docs/BUILD_PLAN.md`). The digest also has a public page per month with the approved articles.
+
 ## Reading lists and questions
 
 Curator builds a list from the digest or library and sets a due date; email reminders a week

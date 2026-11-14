@@ -304,3 +304,17 @@ class UploadedFile(Base):
     content: Mapped[bytes] = mapped_column(LargeBinary)
     uploaded_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     delete_after: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class PublishedMonth(Base):
+    """A month's public digest page, /d/<public_token>, shared with residents (e.g. WhatsApp).
+
+    The page shows only the articles the editor approved, so it is created lazily when the
+    editor opens the month's digest and there is something approved.
+    """
+
+    __tablename__ = "published_months"
+
+    month: Mapped[str] = mapped_column(String(7), primary_key=True)
+    public_token: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))

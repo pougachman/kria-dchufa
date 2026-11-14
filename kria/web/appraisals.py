@@ -193,6 +193,13 @@ def appraisal_page(
     a = _get(session, appraisal_id)
     article = session.get(Article, a.article_id)
     file = session.scalar(select(UploadedFile).where(UploadedFile.appraisal_id == a.id))
+    public_url = f"{settings.public_url}/a/{a.public_token}"
+    share = None
+    if a.status == "approved":
+        from kria.pipeline import share as sh
+
+        text = sh.appraisal_message(a, article, public_url)
+        share = {"text": text, "link": sh.whatsapp_link(text)}
     return templates.TemplateResponse(
         request,
         "editor_appraisal.html",
@@ -206,7 +213,8 @@ def appraisal_page(
             "stale": _stale(a),
             "error": error,
             "note": note,
-            "public_url": f"{settings.public_url}/a/{a.public_token}",
+            "public_url": public_url,
+            "share": share,
             "extraction": (a.steps or {}).get("extract", {}).get("output"),
             "skeptic": (a.steps or {}).get("skeptic", {}).get("output"),
             "editor_view": True,
@@ -316,3 +324,21 @@ def public_appraisal(
             "newer": newer,
         },
     )
+
+
+@router.get("/d/{token}", response_class=HTMLResponse)
+def public_digest(
+    token: str,
+    session: Session = Depends(get_session),  # noqa: B008
+):
+    """The month's digest for residents: only what the editor approved."""
+    from kria.db.models import PublishedMonth
+    from kria.pipeline import digest as dg
+
+    page = session.scalar(select(PublishedMonth).where(PublishedMonth.public_token == token))
+    if page is None:
+        raise HTTPException(status_code=404)
+    content = dg.content(session, page.month)
+    if not content["count"]:
+        raise HTTPException(status_code=404)
+    return HTMLResponse(dg.render(page.month, content, settings.public_url)[1])
