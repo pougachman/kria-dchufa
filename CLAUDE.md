@@ -86,6 +86,10 @@ Tests never call the network; live checks are run by hand. A local Postgres 16 i
       quote and number checks, approve -> PDF deleted and public /a/<token>, digest link.
       Benchmark (reduced, Yoav's decision): CLOVERS, PREVENT, SALT-ED, CRASH-3, HALT-IT run on
       Railway and reviewed by Yoav against SGEM: "good"
-- [ ] M5 programs and roles
+- [ ] M5 programs and roles: code done (2026-11-16): /editor/programs (programs, curators with
+      temporary passwords), /program for curators (own program only; automatic = national
+      digest by topic; curated = candidates, approve/reject, rating 1-5, top 3, add by PMID),
+      program digest page /p/<token> and WhatsApp message. Done when a second program's curator
+      (Dr. Zaki) signs in and rates candidates
 - [ ] M6 reading lists and questions
 - [ ] M7 shared library

@@ -1,0 +1,21 @@
+{% extends "program_base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold">{{ program.name }}</h1>
+<p class="text-slate-600 mt-1">מצב: <strong>{{ mode_he[program.mode] }}</strong> ·
+  נושאים: {% if topic_names %}{{ topic_names | join(", ") }}{% else %}כל הנושאים{% endif %} ·
+  <a href="/program/settings" class="text-emerald-700 underline">שינוי</a></p>
+<p class="text-sm text-slate-500 mt-1">
+  {% if program.mode == "automatic" %}במצב אוטומטי התוכנית מקבלת את המאמרים שאישר העורך הלאומי, מסוננים לפי הנושאים שלה.
+  {% else %}במצב אוצרות מלאה אתה בוחר בעצמך מתוך רשימת המועמדים המלאה של החודש, מדרג, ומוסיף מאמרים לפי PMID.{% endif %}</p>
+
+<div class="space-y-3 mt-5">
+{% for m in months %}
+  <a href="/program/{{ m.month }}" class="block bg-white rounded-xl shadow-sm p-5 hover:ring-2 hover:ring-emerald-600">
+    <span class="text-lg font-semibold">{{ m.month_he }}</span>
+    <span class="text-sm text-slate-600 mr-3">{{ m.count }} מאמרים בדייג'סט של התוכנית</span>
+  </a>
+{% else %}
+  <p class="bg-white rounded-xl p-6 text-slate-600">עדיין אין חודש מוכן.</p>
+{% endfor %}
+</div>
+{% endblock %}

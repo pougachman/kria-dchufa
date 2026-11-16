@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}קריאה דחופה · התוכנית שלי{% endblock %}</title>
+  <link rel="stylesheet" href="/static/editor.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <header class="bg-white border-b-4 border-emerald-600 sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-baseline gap-4">
+        <a href="/program" class="font-bold text-lg">קריאה דחופה</a>
+        {% if program %}<span class="text-slate-500 text-sm hidden sm:inline">{{ program.name }}</span>{% endif %}
+      </div>
+      {% if curator %}
+      <nav class="flex items-center gap-3 text-sm">
+        <a href="/program" class="text-slate-600 hover:text-emerald-700">חודשים</a>
+        <a href="/program/settings" class="text-slate-600 hover:text-emerald-700">הגדרות</a>
+        <form method="post" action="/program/logout"><button class="text-slate-500 hover:text-slate-800">יציאה</button></form>
+      </nav>
+      {% endif %}
+    </div>
+  </header>
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

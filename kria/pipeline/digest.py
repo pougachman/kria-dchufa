@@ -149,35 +149,40 @@ def month_minutes(session: Session, month: str) -> float:
 
 
 def content(session: Session, month: str) -> dict:
-    """What the digest contains: up to 3 top articles, then the rest grouped by topic.
+    """What the national digest contains: up to 3 top articles, then the rest by topic.
 
     Top articles are the ones the editor marked (★); if none are marked, the three best-ranked
     approved articles. They are not repeated in the topic groups.
     """
-    taxonomy = screen.load_taxonomy()
-    order = {t["id"]: i for i, t in enumerate(taxonomy["topics"])}
-    names = {t["id"]: t["he"] for t in taxonomy["topics"]}
     approved = [i for i in ranked(session, month) if i["decision"] == "approved"]
+    return assemble(session, approved)
+
+
+def assemble(session: Session, approved: list[dict]) -> dict:
+    """Digest content from ranked approved items (each with "featured", "topics")."""
     from kria.appraisal.service import approved_for
     from kria.config import settings
 
+    taxonomy = screen.load_taxonomy()
+    order = {t["id"]: i for i, t in enumerate(taxonomy["topics"])}
+    names = {t["id"]: t["he"] for t in taxonomy["topics"]}
     appraisals = approved_for(session, [i["article_id"] for i in approved])
     for item in approved:
         a = appraisals.get(item["article_id"])
         item["appraisal_url"] = f"{settings.public_url}/a/{a.public_token}" if a else None
-    top = [i for i in approved if i["featured"]][:FEATURED] or approved[:FEATURED]
-    for item in approved:
-        item["topic_names"] = [names.get(t, t) for t in item["topics"]]
+        item["topic_names"] = [names.get(t, t) for t in item.get("topics") or []]
+    top = [i for i in approved if i.get("featured")][:FEATURED] or approved[:FEATURED]
     top_ids = {i["article_id"] for i in top}
     groups: dict[str, list[dict]] = {}
     for item in approved:
         if item["article_id"] in top_ids:
             continue
-        groups.setdefault(item["topics"][0], []).append(item)
+        topic = (item.get("topics") or ["other"])[0]
+        groups.setdefault(topic, []).append(item)
     return {
         "top": top,
         "groups": [
-            {"topic": tid, "name": names.get(tid, tid), "items": groups[tid]}
+            {"topic": tid, "name": names.get(tid, "נוספו על ידי התוכנית"), "items": groups[tid]}
             for tid in sorted(groups, key=lambda t: order.get(t, len(order)))
         ],
         "count": len(approved),
@@ -236,8 +241,11 @@ def render(month: str, digest: dict, public_url: str) -> tuple[str, str, str]:
 
 def best_reason(item: dict) -> str:
     """The reason given for the article's highest score (ties: practice-changing first)."""
-    key = max(item["scores"], key=lambda k: item["scores"][k])
-    return item["reasons"][key]
+    scores = item.get("scores") or {}
+    if not scores:
+        return item.get("note") or ""  # an article a program added by hand has no scores
+    key = max(scores, key=lambda k: scores[k] or 0)
+    return item["reasons"].get(key) or ""
 
 
 class Resend:

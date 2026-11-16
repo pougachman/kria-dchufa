@@ -30,9 +30,12 @@ def month_page(session: Session, month: str, create: bool = True) -> PublishedMo
     return page
 
 
-def digest_message(month: str, content: dict, page_url: str) -> str:
+def digest_message(month: str, content: dict, page_url: str, program: str | None = None) -> str:
+    title = f"*קריאה דחופה · {dg.month_he(month)}*"
+    if program:
+        title += f"\n_{program}_"
     lines = [
-        f"*קריאה דחופה · {dg.month_he(month)}*",
+        title,
         f"{content['count']} מאמרים נבחרים לרפואה דחופה, שאושרו על ידי העורך.",
         "",
         "📚 כל המאמרים של החודש, לפי נושא:",
@@ -42,12 +45,10 @@ def digest_message(month: str, content: dict, page_url: str) -> str:
     ]
     for num, item in zip(NUMBERS, content["top"], strict=False):
         link = item.get("appraisal_url") or f"https://pubmed.ncbi.nlm.nih.gov/{item['pmid']}/"
-        lines += [
-            "",
-            f"{num} *{item['title'].rstrip('.')}* ({item['journal']})",
-            f"_{dg.best_reason(item)}_",
-            link,
-        ]
+        reason = dg.best_reason(item)
+        lines += ["", f"{num} *{item['title'].rstrip('.')}* ({item['journal']})"]
+        lines += [f"_{reason}_"] if reason else []
+        lines.append(link)
     return "\n".join(lines)
 
 

@@ -4,6 +4,8 @@ M1 adds the ingestion tables: topics, versioned queries, articles, ingest runs, 
 found which article in which run. M2 adds screening runs and one screening result per article per
 run. M3 adds the national editor's decisions, a log of editor actions (to measure editor time),
 and sent digests. M4 adds appraisals and the privately uploaded full-text files they use.
+M5 adds residency programs, their curators (username and password), and each program's own
+decisions and ratings, which stay private to the program.
 Later milestones add the rest of the model in docs/SPEC.md.
 """
 
@@ -25,6 +27,7 @@ from sqlalchemy import (
     UniqueConstraint,
     false,
     func,
+    true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -316,5 +319,76 @@ class PublishedMonth(Base):
     __tablename__ = "published_months"
 
     month: Mapped[str] = mapped_column(String(7), primary_key=True)
+    public_token: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AppSecret(Base):
+    """Server-side secrets the app creates for itself (e.g. the session signing key)."""
+
+    __tablename__ = "app_secrets"
+
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(String(128))
+
+
+class Program(Base):
+    """A residency program. Mode "automatic": the national digest filtered by the program's
+    topics. Mode "curated": the program's curator chooses from the full candidate list."""
+
+    __tablename__ = "programs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    mode: Mapped[str] = mapped_column(String(16), default="automatic")
+    topics: Mapped[list] = mapped_column(JsonType, default=list)  # empty = all topics
+    active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Curator(Base):
+    """A program curator (program director or chief resident). Created by the national editor."""
+
+    __tablename__ = "curators"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    program_id: Mapped[int] = mapped_column(ForeignKey("programs.id"), index=True)
+    username: Mapped[str] = mapped_column(String(64), unique=True)
+    display_name: Mapped[str] = mapped_column(String(128))
+    password_hash: Mapped[str] = mapped_column(String(255))
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+    last_login_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ProgramDecision(Base):
+    """A curated program's decision and rating for one article in one month. Private to the
+    program; used for calibration only in aggregate and anonymously."""
+
+    __tablename__ = "program_decisions"
+    __table_args__ = (UniqueConstraint("program_id", "month", "article_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    program_id: Mapped[int] = mapped_column(ForeignKey("programs.id"), index=True)
+    month: Mapped[str] = mapped_column(String(7), index=True)
+    article_id: Mapped[int] = mapped_column(ForeignKey("articles.id"))
+    decision: Mapped[str | None] = mapped_column(String(16))  # approved | rejected | None
+    rating: Mapped[int | None] = mapped_column(Integer)  # 1-5
+    featured: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    added: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    curator_id: Mapped[int | None] = mapped_column(ForeignKey("curators.id"))
+    decided_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ProgramMonth(Base):
+    """A program's public digest page for a month: /p/<public_token>."""
+
+    __tablename__ = "program_months"
+    __table_args__ = (UniqueConstraint("program_id", "month"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    program_id: Mapped[int] = mapped_column(ForeignKey("programs.id"))
+    month: Mapped[str] = mapped_column(String(7))
     public_token: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))

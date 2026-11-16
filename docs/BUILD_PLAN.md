@@ -60,6 +60,11 @@ Defaults are in effect until he decides; record each answer here and in the live
   its terms). Monthly message: the 3 top articles with "why read it" and a link, plus a link
   to the month's public digest page (/d/<token>, approved articles only). The monthly
   appraisal goes in a separate message: title, bottom line, link to /a/<token>.
+- Programs (M5, Yoav, 2026-11-16): curators sign in with a username and password (the
+  national editor creates the account with a temporary password; first sign-in forces a new
+  one); only the national editor adds programs and curators; modes "automatic" and "fully
+  curated" now ("customized" with topic weights and volume later); Shamir is a regular program
+  like any other.
 - Pilot outside Shamir (Yoav, 2026-11-12): Dr. Zaki, director of another EM residency program,
   received the October digest as a forward from Yoav; feedback pending. Resend domain
   verified on 2026-11-14: the subdomain kria.drpougach.com (DNS at Cloudflare, domain bought
@@ -171,3 +176,21 @@ tokens each: about 3.5 USD on Sonnet 5.5 or 7 USD on Opus 5.5. Hosting and email
   quotes are behind a "source" toggle and the full Guest Skeptic list is editor-only. The digest shows "Full appraisal" for approved ones.
 - Done when (unchanged): the 10 benchmark articles are appraised from open access or an
   uploaded PDF, every number anchored to a page, and the PDF deleted after approval.
+
+## M5 as built (2026-11-16)
+
+- Editor: /editor/programs to add programs and curators (temporary password shown once),
+  reset a password, disable a curator.
+- Curator: /program/login; passwords hashed with scrypt; signed 30-day cookie whose signature
+  covers the password hash (changing the password signs out other sessions); the signing key is
+  created by the app in `app_secrets`. A curator sees only their own program.
+- Settings: mode (automatic / curated) and topics (none = all).
+- Automatic: the national approved articles filtered by the program's topics.
+- Curated: the month's full ranked candidate list (before national approval), approve /
+  reject, rating 1-5, up to 3 top articles, add articles by PMID or DOI (fetched from PubMed).
+  Decisions and ratings are stored per program (`program_decisions`), private to the program;
+  "approved nationally" is shown as a hint only.
+- Each program has its own public digest page per month (/p/<token>) and a ready WhatsApp
+  message for its residents' group.
+- Done when (unchanged): a second program's curator sees only their program and rates
+  candidates.
